@@ -128,13 +128,13 @@ function HabitTracker() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-3 font-sans">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-3 font-sans">
             Habit Tracker
           </h2>
-          <p className="text-gray-600 text-lg font-sans">
+          <p className="text-gray-600 dark:text-gray-300 text-lg font-sans">
             Build consistent habits and track your daily progress
           </p>
         </div>
@@ -147,7 +147,7 @@ function HabitTracker() {
               value={newHabit}
               onChange={(e) => setNewHabit(e.target.value)}
               placeholder="Add a new habit..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200 text-lg font-sans"
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200 text-lg font-sans bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
             <button
               type="submit"
@@ -166,17 +166,17 @@ function HabitTracker() {
             className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
               currentWeek === 0
                 ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             ← Previous Week
           </button>
-          <span className="text-lg font-semibold text-gray-700 font-sans">
+          <span className="text-lg font-semibold text-gray-700 dark:text-gray-200 font-sans">
             Week {currentWeek + 1}
           </span>
           <button
             onClick={() => setCurrentWeek(prev => prev + 1)}
-            className="px-4 py-2 rounded-full font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-all duration-200"
+            className="px-4 py-2 rounded-full font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
           >
             Next Week →
           </button>
@@ -185,12 +185,12 @@ function HabitTracker() {
         {/* Habits Grid */}
         <div className="space-y-6">
           {habits.map((habit) => (
-            <div key={habit.id} className="border border-gray-200 rounded-xl p-4">
+            <div key={habit.id} className="border border-gray-200 dark:border-gray-600 rounded-xl p-4 bg-white dark:bg-gray-700">
               {/* Habit Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{habit.icon}</span>
-                  <span className="text-lg font-semibold text-gray-800 font-sans">
+                  <span className="text-lg font-semibold text-gray-800 dark:text-white font-sans">
                     {habit.name}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getColorClasses(habit.color)}`}>
@@ -199,7 +199,7 @@ function HabitTracker() {
                 </div>
                 <button
                   onClick={() => deleteHabit(habit.id)}
-                  className="text-gray-400 hover:text-red-500 transition-all duration-200 p-2 hover:scale-110 rounded-full hover:bg-red-50"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-all duration-200 p-2 hover:scale-110 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -211,7 +211,7 @@ function HabitTracker() {
               <div className="grid grid-cols-7 gap-2">
                 {/* Day Headers */}
                 {weekDates.map((date, index) => (
-                  <div key={index} className="text-center text-xs font-medium text-gray-500 font-sans">
+                  <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
                     {date.toLocaleDateString('en-US', { weekday: 'short' })}
                     <br />
                     {date.getDate()}
@@ -232,7 +232,7 @@ function HabitTracker() {
                       className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
                         isCompleted
                           ? `${getColorClasses(habit.color)} text-white`
-                          : `border-gray-300 hover:${getBorderColor(habit.color)} hover:scale-110 ${isToday ? 'ring-2 ring-indigo-300' : ''}`
+                          : `border-gray-300 dark:border-gray-500 hover:${getBorderColor(habit.color)} hover:scale-110 ${isToday ? 'ring-2 ring-indigo-300 dark:ring-indigo-400' : ''}`
                       }`}
                     >
                       {isCompleted && (
@@ -250,7 +250,7 @@ function HabitTracker() {
 
         {/* Empty State */}
         {habits.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p className="text-lg font-sans">No habits yet. Add your first habit above!</p>
           </div>
         )}

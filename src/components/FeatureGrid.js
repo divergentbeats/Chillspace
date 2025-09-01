@@ -54,10 +54,10 @@ function FeatureGrid() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4 font-sans">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 font-sans">
           Explore Our Features
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto font-sans">
+        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-sans">
           Discover tools and resources designed to support your mental wellness journey
         </p>
       </div>
@@ -67,7 +67,7 @@ function FeatureGrid() {
         {features.slice(3, 6).map((feature) => (
           <div
             key={feature.id}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-gray-100 dark:border-gray-700 overflow-hidden"
           >
             <div className="p-8">
               {/* Icon */}
@@ -76,12 +76,12 @@ function FeatureGrid() {
               </div>
               
               {/* Title */}
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center font-sans">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 text-center font-sans">
                 {feature.title}
               </h3>
               
               {/* Description */}
-              <p className="text-gray-600 text-center mb-8 text-lg font-sans">
+              <p className="text-gray-600 dark:text-gray-300 text-center mb-8 text-lg font-sans">
                 {feature.description}
               </p>
               
@@ -104,7 +104,7 @@ function FeatureGrid() {
         {features.slice(0, 3).map((feature) => (
           <div
             key={feature.id}
-            className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100 dark:border-gray-700 overflow-hidden"
           >
             <div className="p-6">
               {/* Icon */}
@@ -113,12 +113,12 @@ function FeatureGrid() {
               </div>
               
               {/* Title */}
-              <h3 className="text-xl font-semibold text-gray-800 mb-3 text-center font-sans">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3 text-center font-sans">
                 {feature.title}
               </h3>
               
               {/* Description */}
-              <p className="text-gray-600 text-center mb-6 font-sans">
+              <p className="text-gray-600 dark:text-gray-300 text-center mb-6 font-sans">
                 {feature.description}
               </p>
               

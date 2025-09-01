@@ -65,13 +65,13 @@ function SessionCard() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-12">
         <div 
           onClick={() => setIsModalOpen(true)}
-          className="bg-white rounded-2xl shadow-xl p-8 cursor-pointer transform hover:scale-105 transition-all duration-300 border border-gray-100 hover:shadow-2xl"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 cursor-pointer transform hover:scale-105 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:shadow-2xl"
         >
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4 font-sans">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 font-sans">
               Have a session with us!
             </h2>
-            <p className="text-gray-600 text-lg font-sans">
+            <p className="text-gray-600 dark:text-gray-300 text-lg font-sans">
               Click to start your personalized wellness journey
             </p>
           </div>
@@ -81,7 +81,7 @@ function SessionCard() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
             {/* Header */}
             <div className="bg-indigo-600 text-white p-6">
               <div className="flex justify-between items-center">
@@ -115,7 +115,7 @@ function SessionCard() {
               <div className="min-h-[200px] flex flex-col">
                 {/* Question */}
                 <div className="flex-1">
-                  <h4 className="text-xl font-semibold text-gray-800 mb-6 text-center font-sans">
+                  <h4 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 text-center font-sans">
                     {questions[currentStep].title}
                   </h4>
                   
@@ -127,8 +127,8 @@ function SessionCard() {
                         onClick={() => handleOptionSelect(option)}
                         className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
                           answers[questions[currentStep].id] === option
-                            ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                            : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'
                         }`}
                       >
                         {option}
@@ -138,14 +138,14 @@ function SessionCard() {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
                   <button
                     onClick={prevStep}
                     disabled={currentStep === 0}
                     className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
                       currentStep === 0
                         ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     Back
@@ -156,7 +156,7 @@ function SessionCard() {
                     disabled={!answers[questions[currentStep].id]}
                     className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
                       !answers[questions[currentStep].id]
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                         : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105'
                     }`}
                   >

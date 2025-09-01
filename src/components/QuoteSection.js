@@ -23,10 +23,10 @@ function QuoteSection() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-r from-indigo-100 to-purple-100 py-10">
+    <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 transition-colors duration-200 py-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`text-center transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <blockquote className="text-2xl md:text-3xl font-bold text-gray-800 leading-relaxed font-sans">
+          <blockquote className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white leading-relaxed font-sans">
             "{quote}"
           </blockquote>
         </div>
