@@ -1,45 +1,143 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 function Hero() {
   const scrollToQuotes = () => {
-    const quotesSection = document.querySelector('[data-section="quotes"]');
+    const quotesSection = document.getElementById('quotes');
     if (quotesSection) {
       quotesSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const buttonVariants = {
+    hover: { 
+      scale: 1.05,
+      transition: { duration: 0.2 }
+    },
+    tap: { 
+      scale: 0.95,
+      transition: { duration: 0.1 }
+    }
+  };
+
   return (
-    <div className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200 overflow-hidden">
+    <div id="hero" className="relative bg-gradient-to-br from-pastel-blue-50 via-white to-pastel-purple-50 dark:from-pastel-neutral-900 dark:via-pastel-neutral-800 dark:to-pastel-neutral-900 transition-colors duration-200 overflow-hidden min-h-screen flex items-center">
       {/* Animated background waves */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 dark:bg-purple-800 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 dark:bg-indigo-800 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-200 dark:bg-pink-800 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <motion.div 
+          animate={{ 
+            x: [0, 30, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute -top-40 -right-40 w-80 h-80 bg-pastel-purple-200 dark:bg-pastel-purple-800/30 rounded-full mix-blend-multiply filter blur-xl opacity-70"
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -30, 0],
+            y: [0, 50, 0],
+            scale: [1, 0.9, 1]
+          }}
+          transition={{ 
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 5
+          }}
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-pastel-blue-200 dark:bg-pastel-blue-800/30 rounded-full mix-blend-multiply filter blur-xl opacity-70"
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, 20, 0],
+            y: [0, -30, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ 
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 10
+          }}
+          className="absolute top-40 left-40 w-80 h-80 bg-pastel-green-200 dark:bg-pastel-green-800/30 rounded-full mix-blend-multiply filter blur-xl opacity-70"
+        />
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-        <div className="text-center">
-          <h1 className="text-6xl md:text-7xl font-bold text-gray-800 dark:text-white mb-6 font-sans leading-tight">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-center"
+        >
+          <motion.h1 
+            variants={itemVariants}
+            className="text-6xl md:text-7xl lg:text-8xl font-bold text-pastel-neutral-800 dark:text-pastel-neutral-100 mb-6 leading-tight font-sans"
+          >
             Welcome to
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+            <span className="block gradient-text dark:gradient-text-dark">
               Chillspace
             </span>
-          </h1>
-          <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed font-sans">
+          </motion.h1>
+          
+          <motion.p 
+            variants={itemVariants}
+            className="text-xl md:text-2xl lg:text-3xl text-pastel-neutral-600 dark:text-pastel-neutral-300 max-w-4xl mx-auto mb-12 leading-relaxed font-sans"
+          >
             Your calm corner for quotes, focus, and positivity.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button 
+          </motion.p>
+          
+          <motion.div 
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-6 justify-center"
+          >
+            <motion.button 
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
               onClick={scrollToQuotes}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-5 px-10 rounded-full text-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-pastel-blue-500 to-pastel-purple-600 hover:from-pastel-blue-600 hover:to-pastel-purple-700 text-white font-semibold py-5 px-10 rounded-2xl text-xl transition-all duration-300 shadow-glow hover:shadow-glow-lg transform"
             >
               Explore Quotes
-            </button>
-            <button className="border-2 border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white font-semibold py-5 px-10 rounded-full text-xl transition-all duration-300 transform hover:scale-105">
+            </motion.button>
+            
+            <motion.button 
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              className="border-2 border-pastel-blue-500 dark:border-pastel-blue-400 text-pastel-blue-600 dark:text-pastel-blue-400 hover:bg-pastel-blue-500 hover:text-white font-semibold py-5 px-10 rounded-2xl text-xl transition-all duration-300 transform shadow-soft hover:shadow-glow"
+            >
               Start Your Journey
-            </button>
-          </div>
-        </div>
+            </motion.button>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
