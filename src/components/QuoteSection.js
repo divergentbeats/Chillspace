@@ -5,11 +5,11 @@ function QuoteSection() {
   const [isVisible, setIsVisible] = useState(false);
 
   const quotes = [
-    "Your mental health is a priority. Your happiness is essential. Your self-care is a necessity.",
-    "Productivity is not about being busy. It's about being present and purposeful.",
-    "Small steps every day lead to big changes over time. Be patient with your progress.",
-    "You are capable of amazing things. Start where you are, use what you have, do what you can.",
-    "Wellness is the complete integration of body, mind, and spirit. Start your journey today."
+    "Take a deep breath. You're exactly where you need to be right now.",
+    "In the midst of chaos, find your inner peace. Your calm is your superpower.",
+    "Small moments of mindfulness create a lifetime of wellness.",
+    "You don't have to be perfect to be amazing. Progress over perfection.",
+    "Your mental space is sacred. Protect it, nurture it, and watch it flourish."
   ];
 
   useEffect(() => {

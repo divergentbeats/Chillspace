@@ -1,6 +1,6 @@
-# Youth Mental Wellness
+# Chillspace
 
-A supportive platform for young people to prioritize their mental health and well-being.
+A supportive platform for mental wellness and productivity, designed to help you find your calm and build sustainable habits.
 
 ## Getting Started
 
@@ -41,11 +41,25 @@ npm start
 src/
   ├── App.js          # Main application component
   ├── index.js        # Application entry point
-  └── index.css       # Global styles with Tailwind CSS
-public/
-  └── index.html      # HTML template
+  ├── index.css       # Global styles with Tailwind CSS
+  └── components/     # React components
+      ├── Navbar.js           # Navigation bar
+      ├── Hero.js             # Hero section
+      ├── QuoteSection.js     # Motivational quotes
+      ├── SessionCard.js      # Session setup modal
+      ├── FeatureGrid.js      # Feature cards grid
+      ├── ProductivityMode.js # To-do list with categories
+      └── HabitTracker.js     # Daily habit tracking
 ```
+
+## Features
+
+- **Mental Wellness Tools**: Session setup, mood analysis, progress tracking
+- **Productivity Mode**: Categorized task management with progress tracking
+- **Habit Tracker**: Daily habit monitoring with streak counting
+- **Responsive Design**: Modern dashboard interface for all devices
+- **Local Storage**: Data persistence for habits and tasks
 
 ## Contributing
 
-This project is focused on creating a supportive environment for youth mental wellness. All contributions are welcome!
+This project is focused on creating a supportive environment for mental wellness and productivity. All contributions are welcome!
