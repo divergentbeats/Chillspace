@@ -14,6 +14,7 @@ import ComingSoon from './components/ComingSoon';
 import Footer from './components/Footer';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import Preferences from './components/Preferences';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -158,6 +159,19 @@ function AnimatedRoutes() {
               transition={{ duration: 0.3 }}
             >
               <Signup />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/preferences"
+          element={
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Preferences />
             </motion.div>
           }
         />

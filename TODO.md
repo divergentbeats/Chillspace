@@ -1,16 +1,18 @@
-# Authentication System Implementation TODO
+# Firebase Authentication Integration TODO
 
 ## Completed Tasks
-- [x] Analyze project structure and plan implementation
-- [x] Create comprehensive plan and get user approval
-- [x] Install react-router-dom dependency
-- [x] Create AuthContext for authentication state management
-- [x] Create Login component with form validation
-- [x] Create Signup component with form validation
-- [x] Update App.js to include routing setup
-- [x] Update Navbar.js to show Login/Logout dynamically
-- [x] Add smooth page transitions
-- [x] Push changes to git for deployment
+- [x] Update AuthContext.js to use Firebase Authentication instead of localStorage
 
 ## Pending Tasks
-- [ ] Test all functionality and ensure responsive design
+- [ ] Update Login component to handle Firebase auth errors
+- [ ] Update Signup component to handle Firebase auth errors
+- [ ] Test authentication flow with Firebase
+- [ ] Update Navbar.js if needed for Firebase auth state
+
+## Login Flow Enhancement Tasks
+- [x] Add Google sign-in and guest login buttons to Login.js
+- [x] Change login redirect to /preferences instead of home
+- [x] Create Preferences.jsx component with multi-step modal wizard
+- [x] Add /preferences route to App.js
+- [x] Implement Firebase Firestore persistence for authenticated users and localStorage for guests
+- [ ] Test complete login -> preferences -> home flow
