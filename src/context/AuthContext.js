@@ -1,4 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth, googleProvider } from '../lib/firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  signInWithPopup,
+} from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -11,44 +19,34 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Check localStorage for saved user data
-    const saved = localStorage.getItem('chillspace-user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(null);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Save user data to localStorage
-    if (user) {
-      localStorage.setItem('chillspace-user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('chillspace-user');
-    }
-  }, [user]);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Simple validation - in real app, this would be an API call
-      if (email && password) {
-        const userData = {
-          id: Date.now().toString(),
-          email,
-          name: email.split('@')[0],
-          createdAt: new Date().toISOString()
-        };
-        setUser(userData);
-        return { success: true };
-      } else {
-        return { success: false, error: 'Invalid credentials' };
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'Login failed' };
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
@@ -57,50 +55,40 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password, confirmPassword) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Validation
-      if (!email || !password || !confirmPassword) {
-        return { success: false, error: 'All fields are required' };
-      }
-
       if (password !== confirmPassword) {
         return { success: false, error: 'Passwords do not match' };
       }
-
-      if (password.length < 6) {
-        return { success: false, error: 'Password must be at least 6 characters' };
-      }
-
-      // Check if user already exists (in real app, this would be server-side)
-      const existingUsers = JSON.parse(localStorage.getItem('chillspace-users') || '[]');
-      if (existingUsers.some(u => u.email === email)) {
-        return { success: false, error: 'User already exists' };
-      }
-
-      const userData = {
-        id: Date.now().toString(),
-        email,
-        name: email.split('@')[0],
-        createdAt: new Date().toISOString()
-      };
-
-      // Save to "database" (localStorage)
-      existingUsers.push({ ...userData, password }); // In real app, never store plain password
-      localStorage.setItem('chillspace-users', JSON.stringify(existingUsers));
-
-      setUser(userData);
+      await createUserWithEmailAndPassword(auth, email, password);
       return { success: true };
     } catch (error) {
-      return { success: false, error: 'Signup failed' };
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await signOut(auth);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      await signInWithPopup(auth, googleProvider);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const value = {
@@ -109,12 +97,9 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
-    isAuthenticated: !!user
+    signInWithGoogle,
+    isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

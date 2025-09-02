@@ -65,7 +65,18 @@ function Signup() {
     if (result.success) {
       navigate('/');
     } else {
-      setErrors({ general: result.error });
+      // Map Firebase auth errors to user-friendly messages
+      let errorMessage = result.error;
+      if (result.error.includes('auth/email-already-in-use')) {
+        errorMessage = 'An account with this email already exists.';
+      } else if (result.error.includes('auth/invalid-email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (result.error.includes('auth/weak-password')) {
+        errorMessage = 'Password should be at least 6 characters.';
+      } else if (result.error.includes('auth/operation-not-allowed')) {
+        errorMessage = 'Email/password accounts are not enabled.';
+      }
+      setErrors({ general: errorMessage });
     }
   };
 
