@@ -9,15 +9,14 @@ import ProductivityMode from './components/ProductivityMode';
 import HabitTracker from './components/HabitTracker';
 import ComingSoon from './components/ComingSoon';
 import Footer from './components/Footer';
-import ParticlesBg from 'particles-bg';
+import Background from './components/Background';
 
 function AppContent() {
   const { isDarkMode } = useTheme();
-  const particleColor = isDarkMode ? '#FFFFFF' : '#a855f7';
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
-      <ParticlesBg type="lines" color={particleColor} num={isDarkMode ? 60 : 40} bg={true} />
+      <Background />
       <Navbar />
       {/* Each section is given an ID to act as a scroll target */}
       <Hero />
