@@ -1,5 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import QuoteSection from './components/QuoteSection';
@@ -9,6 +12,9 @@ import ProductivityMode from './components/ProductivityMode';
 import HabitTracker from './components/HabitTracker';
 import ComingSoon from './components/ComingSoon';
 import Footer from './components/Footer';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import Preferences from './components/Preferences';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -124,10 +130,77 @@ function AppContent() {
   );
 }
 
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/login"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Login />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Signup />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/preferences"
+          element={
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Preferences />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AppContent />
+            </motion.div>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <Router>
+          <AnimatedRoutes />
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
