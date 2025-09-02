@@ -15,7 +15,8 @@ function App() {
   console.log("Gemini works!");
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
+      {/* The 'relative' class is crucial for positioning the absolute background */}
+      <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
         <AnimatedBackground />
         <Navbar />
         <Hero />

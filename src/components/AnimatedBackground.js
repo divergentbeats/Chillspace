@@ -12,10 +12,9 @@ const AnimatedBackground = () => {
   }, []);
 
   const particleOptions = useMemo(() => ({
-    fullScreen: {
-      enable: true,
-      zIndex: -1, // Places the canvas behind all other content
-    },
+    // We'll control the positioning via CSS classes on the component
+    // instead of the fullScreen option to prevent layout shifts.
+    fullScreen: { enable: false },
     particles: {
       number: {
         value: isDarkMode ? 80 : 40,
@@ -54,7 +53,14 @@ const AnimatedBackground = () => {
     },
   }), [isDarkMode]);
 
-  return <Particles id="tsparticles" init={particlesInit} options={particleOptions} />;
+  return (
+    <Particles
+      id="tsparticles"
+      className="absolute inset-0 -z-10" // Positioned behind content
+      init={particlesInit}
+      options={particleOptions}
+    />
+  );
 };
 
 export default AnimatedBackground;
