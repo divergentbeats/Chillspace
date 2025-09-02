@@ -24,6 +24,24 @@ function Navbar() {
     }
   };
 
+  // Add event listener for smooth scroll on all nav links for consistent behavior across pages
+  React.useEffect(() => {
+    const handleNavClick = (e) => {
+      if (e.target.tagName === 'BUTTON' && e.target.dataset.section) {
+        e.preventDefault();
+        scrollToSection(e.target.dataset.section);
+      }
+    };
+    document.querySelectorAll('button[data-section]').forEach(btn => {
+      btn.addEventListener('click', handleNavClick);
+    });
+    return () => {
+      document.querySelectorAll('button[data-section]').forEach(btn => {
+        btn.removeEventListener('click', handleNavClick);
+      });
+    };
+  }, []);
+
   const navItems = [
     { id: 'hero', label: 'Home' },
     { id: 'quotes', label: 'Quotes' },
@@ -197,4 +215,6 @@ function Navbar() {
     </motion.nav>
   );
 }
+
+export default Navbar;
 
