@@ -44,11 +44,13 @@ function Navbar() {
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex-shrink-0"
+            className="flex-shrink-0 p-1"
           >
-            <div className="h-10 w-10 bg-gradient-to-br from-pastel-blue-500 to-pastel-purple-600 rounded-2xl flex items-center justify-center shadow-glow">
-              <span className="text-white font-bold text-lg">C</span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Chillspace Logo"
+              className="h-10 w-auto object-contain"
+            />
           </motion.div>
 
           {/* Navigation Links */}
