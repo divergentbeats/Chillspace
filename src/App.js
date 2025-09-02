@@ -19,13 +19,22 @@ function AppContent() {
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
       <ParticlesBg type="lines" color={particleColor} num={isDarkMode ? 60 : 40} bg={true} />
       <Navbar />
+      {/* Each section is given an ID to act as a scroll target */}
       <Hero />
       <QuoteSection />
       <SessionCard />
-      <FeatureGrid />
-      <ProductivityMode />
-      <HabitTracker />
-      <ComingSoon />
+      <div id="features">
+        <FeatureGrid />
+      </div>
+      <div id="productivity">
+        <ProductivityMode />
+      </div>
+      <div id="habits">
+        <HabitTracker />
+      </div>
+      <div id="coming-soon">
+        <ComingSoon />
+      </div>
       <Footer />
     </div>
   );
