@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
   const { isDarkMode, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const scrollToSection = (sectionId) => {
@@ -50,29 +52,74 @@ function Navbar() {
           </motion.div>
 
           {/* Navigation Links */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              {navItems.map((item, index) => (
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item, index) => (
+              <motion.button
+                key={item.id}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -2 }}
+                onClick={() => scrollToSection(item.id)}
+                className="relative text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 text-sm font-medium transition-colors duration-300 group"
+              >
+                {item.label}
+                {/* Animated underline */}
+                <motion.div
+                  className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-pastel-blue-500 to-pastel-purple-500 rounded-full"
+                  initial={{ width: 0 }}
+                  whileHover={{ width: "100%" }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.button>
+            ))}
+            {user ? (
+              <motion.button
+                key="logout"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: navItems.length * 0.1 }}
+                whileHover={{ y: -2 }}
+                onClick={() => {
+                  logout();
+                  setIsOpen(false);
+                }}
+                className="relative text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 px-3 py-2 text-sm font-medium transition-colors duration-300"
+              >
+                Logout
+              </motion.button>
+            ) : (
+              <>
                 <motion.button
-                  key={item.id}
+                  key="login"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: navItems.length * 0.1 }}
                   whileHover={{ y: -2 }}
-                  onClick={() => scrollToSection(item.id)}
-                  className="relative text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 text-sm font-medium transition-colors duration-300 group"
+                  onClick={() => {
+                    window.location.href = '/login';
+                    setIsOpen(false);
+                  }}
+                  className="relative text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 px-3 py-2 text-sm font-medium transition-colors duration-300"
                 >
-                  {item.label}
-                  {/* Animated underline */}
-                  <motion.div
-                    className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-pastel-blue-500 to-pastel-purple-500 rounded-full"
-                    initial={{ width: 0 }}
-                    whileHover={{ width: "100%" }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  Login
                 </motion.button>
-              ))}
-            </div>
+                <motion.button
+                  key="signup"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: (navItems.length + 1) * 0.1 }}
+                  whileHover={{ y: -2 }}
+                  onClick={() => {
+                    window.location.href = '/signup';
+                    setIsOpen(false);
+                  }}
+                  className="relative text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 px-3 py-2 text-sm font-medium transition-colors duration-300"
+                >
+                  Sign Up
+                </motion.button>
+              </>
+            )}
           </div>
 
           {/* Theme Toggle and Mobile Menu */}
@@ -129,10 +176,23 @@ function Navbar() {
           {navItems.map((item) => (
             <button key={item.id} onClick={() => scrollToSection(item.id)} className="block w-full text-left text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors">{item.label}</button>
           ))}
+          {user ? (
+            <button onClick={() => { logout(); setIsOpen(false); }} className="block w-full text-left text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900 px-3 py-2 rounded-md text-base font-medium transition-colors">
+              Logout
+            </button>
+          ) : (
+            <>
+              <button onClick={() => { window.location.href = '/login'; setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
+                Login
+              </button>
+              <button onClick={() => { window.location.href = '/signup'; setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
+                Sign Up
+              </button>
+            </>
+          )}
         </motion.div>
       )}
     </motion.nav>
   );
 }
 
-export default Navbar;
