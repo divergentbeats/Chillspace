@@ -10,7 +10,7 @@
 - [x] Update App.js to include routing setup
 - [x] Update Navbar.js to show Login/Logout dynamically
 - [x] Add smooth page transitions
+- [x] Push changes to git for deployment
 
 ## Pending Tasks
 - [ ] Test all functionality and ensure responsive design
-- [ ] Push changes to git for deployment
