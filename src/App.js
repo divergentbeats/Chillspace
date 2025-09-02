@@ -10,6 +10,8 @@ import HabitTracker from './components/HabitTracker';
 import ComingSoon from './components/ComingSoon';
 import Footer from './components/Footer';
 
+// Updated: Added smooth starfield background animation and fixed navbar scroll offset
+
 // Starfield Background Component
 const Starfield = () => {
   const canvasRef = useRef(null);
