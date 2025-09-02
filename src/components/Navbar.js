@@ -7,11 +7,18 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const scrollToSection = (sectionId) => {
-    // Smooth scroll to the section using native browser API
+    // Smooth scroll to the section using native browser API with navbar offset
     const element = document.getElementById(sectionId);
     setIsOpen(false); // Close mobile menu on navigation
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const navbarHeight = 64; // Height of the navbar (h-16 = 4rem = 64px)
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
