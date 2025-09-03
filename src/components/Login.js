@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import LoginStarfield from './LoginStarfield';
+import './Login.css';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -12,7 +12,6 @@ function Login() {
   });
   const [errors, setErrors] = useState({});
   const { login, signInWithGoogle, isLoading } = useAuth();
-  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -89,15 +88,13 @@ function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 sm:px-6 lg:px-8">
-      <div className="fixed inset-0 -z-10">
-        <LoginStarfield />
-      </div>
+    <div className="container relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
+      <LoginStarfield />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-md w-full space-y-8 z-10 relative"
+        className="max-w-md w-full space-y-8 z-10 relative bg-white/20 dark:bg-gray-900/40 rounded-xl backdrop-blur-md p-8 shadow-lg"
       >
         <div>
           <motion.div
@@ -144,7 +141,7 @@ function Login() {
           )}
 
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <label htmlFor="email" className="block text-sm font-medium text-pastel-neutral-700 dark:text-pastel-neutral-300">
                 Email address
               </label>
@@ -156,19 +153,24 @@ function Login() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
+                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
                   errors.email
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
                 } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Enter your email"
               />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg className="h-5 w-5 text-pastel-neutral-400 dark:text-pastel-neutral-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2.94 6.94a2 2 0 012.83 0L10 11.17l4.23-4.23a2 2 0 112.83 2.83l-6 6a2 2 0 01-2.83 0l-6-6a2 2 0 010-2.83z" />
+                </svg>
+              </div>
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
 
-            <div>
+            <div className="relative">
               <label htmlFor="password" className="block text-sm font-medium text-pastel-neutral-700 dark:text-pastel-neutral-300">
                 Password
               </label>
@@ -180,17 +182,32 @@ function Login() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
+                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
                   errors.password
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
                 } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Enter your password"
               />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg className="h-5 w-5 text-pastel-neutral-400 dark:text-pastel-neutral-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 8a3 3 0 116 0v1h1a2 2 0 012 2v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3a2 2 0 012-2h1V8zm3-2a2 2 0 00-2 2v1h4V8a2 2 0 00-2-2z" clipRule="evenodd" />
+                </svg>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
               )}
             </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center text-sm text-pastel-neutral-700 dark:text-pastel-neutral-300">
+              <input type="checkbox" className="form-checkbox h-4 w-4 text-pastel-blue-500 rounded" />
+              <span className="ml-2">Remember me</span>
+            </label>
+            <Link to="/forgot-password" className="text-sm text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300">
+              Forgot password?
+            </Link>
           </div>
 
           <div>
@@ -199,11 +216,11 @@ function Login() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-pastel-blue-500 to-pastel-purple-600 hover:from-pastel-blue-600 hover:to-pastel-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-pastel-neutral-900 bg-white hover:bg-pastel-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow"
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-pastel-neutral-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -233,35 +250,23 @@ function Login() {
               className="w-full flex justify-center items-center px-4 py-3 border border-pastel-neutral-300 dark:border-pastel-neutral-600 rounded-lg shadow-sm bg-white dark:bg-pastel-neutral-800 text-sm font-medium text-pastel-neutral-700 dark:text-pastel-neutral-300 hover:bg-pastel-neutral-50 dark:hover:bg-pastel-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <path fill="#4285F4" d="M23.64 12.204c0-.639-.057-1.252-.162-1.837H12v3.481h6.844a5.862 5.862 0 01-2.54 3.846v3.197h4.107c2.4-2.213 3.778-5.462 3.778-9.687z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.963-1.073 7.951-2.91l-4.107-3.197c-1.14.766-2.6 1.22-3.844 1.22-2.956 0-5.462-1.995-6.356-4.677H1.44v2.94A11.998 11.998 0 0012 24z"/>
+                <path fill="#FBBC05" d="M5.644 14.436a7.18 7.18 0 010-4.872V6.624H1.44a11.998 11.998 0 000 10.752l4.204-2.94z"/>
+                <path fill="#EA4335" d="M12 4.77c1.76 0 3.344.606 4.59 1.796l3.44-3.44C17.96 1.367 15.24 0 12 0 7.2 0 3.12 2.88 1.44 6.624l4.204 3.02C6.538 6.765 9.012 4.77 12 4.77z"/>
               </svg>
               Sign in with Google
             </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGuestLogin}
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-pastel-neutral-300 dark:border-pastel-neutral-600 rounded-lg shadow-sm bg-pastel-neutral-50 dark:bg-pastel-neutral-700 text-sm font-medium text-pastel-neutral-700 dark:text-pastel-neutral-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              Continue as Guest
-            </motion.button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-pastel-neutral-600 dark:text-pastel-neutral-400">
-              Don't have an account?{' '}
-              <Link
-                to="/signup"
-                className="font-medium text-pastel-blue-600 hover:text-pastel-blue-500 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 transition-colors"
-              >
-                Sign up
-              </Link>
-            </p>
+          <div className="text-center text-sm text-pastel-neutral-600 dark:text-pastel-neutral-400">
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              className="underline hover:text-pastel-blue-500 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 rounded"
+            >
+              Continue as Guest
+            </button>
           </div>
         </motion.form>
       </motion.div>

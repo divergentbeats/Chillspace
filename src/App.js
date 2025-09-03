@@ -110,8 +110,12 @@ function AppContent() {
       <Starfield />
       <Navbar />
       {/* Each section is given an ID to act as a scroll target */}
-      <Hero />
-      <QuoteSection />
+      <div id="hero">
+        <Hero />
+      </div>
+      <div id="quotes">
+        <QuoteSection />
+      </div>
       <SessionCard />
       <div id="features">
         <FeatureGrid />
