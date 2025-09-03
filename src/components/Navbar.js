@@ -14,39 +14,46 @@ function Navbar() {
     setIsOpen(false); // Close mobile menu on navigation
     if (element) {
       const navbarHeight = 64; // Height of the navbar (h-16 = 4rem = 64px)
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navbarHeight;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+      // Use requestAnimationFrame for smoother scrolling
+      const scrollTo = (targetY) => {
+        const startY = window.pageYOffset;
+        const distance = targetY - startY;
+        const duration = 800; // ms
+        let startTime = null;
+
+        const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+        const animation = (currentTime) => {
+          if (startTime === null) startTime = currentTime;
+          const timeElapsed = currentTime - startTime;
+          const progress = Math.min(timeElapsed / duration, 1);
+          const easeProgress = easeInOutQuad(progress);
+
+          window.scrollTo(0, startY + distance * easeProgress);
+
+          if (progress < 1) {
+            requestAnimationFrame(animation);
+          }
+        };
+
+        requestAnimationFrame(animation);
+      };
+
+      scrollTo(offsetPosition);
     }
   };
 
-  // Add event listener for smooth scroll on all nav links for consistent behavior across pages
-  React.useEffect(() => {
-    const handleNavClick = (e) => {
-      if (e.target.tagName === 'BUTTON' && e.target.dataset.section) {
-        e.preventDefault();
-        scrollToSection(e.target.dataset.section);
-      }
-    };
-    document.querySelectorAll('button[data-section]').forEach(btn => {
-      btn.addEventListener('click', handleNavClick);
-    });
-    return () => {
-      document.querySelectorAll('button[data-section]').forEach(btn => {
-        btn.removeEventListener('click', handleNavClick);
-      });
-    };
-  }, []);
+
 
   const navItems = [
     { id: 'hero', label: 'Home' },
     { id: 'quotes', label: 'Quotes' },
     { id: 'features', label: 'Features' },
     { id: 'productivity', label: 'Productivity' },
+    { id: 'habits', label: 'Habits' },
     { id: 'coming-soon', label: 'Coming Soon' }
   ];
 
@@ -194,7 +201,13 @@ function Navbar() {
           className="md:hidden px-2 pt-2 pb-3 space-y-1 sm:px-3"
         >
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => scrollToSection(item.id)} className="block w-full text-left text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors">{item.label}</button>
+            <button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
+              className="block w-full text-left text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors"
+            >
+              {item.label}
+            </button>
           ))}
           {user ? (
             <button onClick={() => { logout(); setIsOpen(false); }} className="block w-full text-left text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900 px-3 py-2 rounded-md text-base font-medium transition-colors">

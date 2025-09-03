@@ -4,6 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset margins and padding for full screen backgrounds */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* Custom animations */
 @keyframes blob {
   0% {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import './Preferences.css';
 
 const stepsData = [
   {
@@ -23,11 +23,16 @@ const stepsData = [
     ],
   },
   {
-    title: 'Step 3: Choose your notification preferences',
+    title: 'Step 3: How are you feeling right now?',
     options: [
-      { id: 'notif1', label: 'Email Notifications' },
-      { id: 'notif2', label: 'Push Notifications' },
-      { id: 'notif3', label: 'SMS Notifications' },
+      { id: 'feeling1', label: 'Depressed' },
+      { id: 'feeling2', label: 'Anxious' },
+      { id: 'feeling3', label: 'Exam stressed' },
+      { id: 'feeling4', label: 'Worried' },
+      { id: 'feeling5', label: 'Frustrated' },
+      { id: 'feeling6', label: 'Scared' },
+      { id: 'feeling7', label: 'Overwhelmed' },
+      { id: 'feeling8', label: 'Lonely' },
     ],
   },
 ];
@@ -94,21 +99,21 @@ const Preferences = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="container fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-pastel-blue-500 to-pastel-purple-600 bg-opacity-30 backdrop-blur-sm">
       <motion.div
         key={currentStep}
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.4 }}
-        className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-md w-full p-6"
+        className="bg-white/20 dark:bg-gray-900/40 rounded-xl shadow-lg max-w-md w-full p-6 relative z-10 text-pastel-neutral-900 dark:text-white"
       >
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{stepsData[currentStep].title}</h2>
+        <h2 className="text-xl font-semibold mb-4">{stepsData[currentStep].title}</h2>
         <div className="space-y-3 mb-6">
           {stepsData[currentStep].options.map((option) => (
             <label
               key={option.id}
-              className="flex items-center space-x-3 cursor-pointer text-gray-800 dark:text-gray-300"
+              className="flex items-center space-x-3 cursor-pointer text-pastel-neutral-900 dark:text-pastel-neutral-300"
             >
               <input
                 type="checkbox"
@@ -144,3 +149,4 @@ const Preferences = () => {
   );
 };
 
+export default Preferences;

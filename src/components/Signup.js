@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-
 function Signup() {
   const [formData, setFormData] = useState({
     email: '',
@@ -12,7 +10,6 @@ function Signup() {
   });
   const [errors, setErrors] = useState({});
   const { signup, isLoading } = useAuth();
-  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
