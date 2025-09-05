@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, getDocs, where } from 'firebase/firestore';
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
+import { Link } from 'react-router-dom';
+const logo = process.env.PUBLIC_URL + '/logo.png';  // Use public URL for logo image
 
 // Tags from preferences
 const VENT_TAGS = [
@@ -292,12 +294,18 @@ const VentingVenue = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-8"
+          className="text-center mb-8 relative"
         >
-          <h1 className="text-4xl font-bold gradient-text mb-4">Your Safe Space 🌸</h1>
-          <p className="text-lg text-pastel-neutral-600 dark:text-pastel-neutral-400">
-            You're not alone here. Share freely and find support in our community.
-          </p>
+          <Link to="/" className="absolute top-4 left-4 flex items-center space-x-2 z-10">
+            <img src={logo} alt="Chillspace Logo" className="h-10 w-auto cursor-pointer" />
+            <span className="sr-only">Chillspace Home</span>
+          </Link>
+          <div>
+            <h1 className="text-4xl font-bold gradient-text mb-4">Your Safe Space 🌸</h1>
+            <p className="text-lg text-pastel-neutral-600 dark:text-pastel-neutral-400">
+              You're not alone here. Share freely and find support in our community.
+            </p>
+          </div>
         </motion.div>
 
         {/* Filter Toggle */}
@@ -509,7 +517,7 @@ const VentingVenue = () => {
                     onClick={() => handleReaction(vent.id, 'hug')}
                     className="flex items-center space-x-1 text-pastel-neutral-600 dark:text-pastel-neutral-400 hover:text-pastel-pink-500 dark:hover:text-pastel-pink-400 transition-colors"
                   >
-                    <span className="text-lg">🤗</span>
+                    <span className="text-lg">👍</span>
                     <span className="text-sm">{vent.reactions?.hug || 0}</span>
                   </motion.button>
 
@@ -519,7 +527,7 @@ const VentingVenue = () => {
                     onClick={() => handleReaction(vent.id, 'heart')}
                     className="flex items-center space-x-1 text-pastel-neutral-600 dark:text-pastel-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                   >
-                    <span className="text-lg">💖</span>
+                    <span className="text-lg">❤️</span>
                     <span className="text-sm">{vent.reactions?.heart || 0}</span>
                   </motion.button>
 
@@ -529,7 +537,7 @@ const VentingVenue = () => {
                     onClick={() => handleReaction(vent.id, 'support')}
                     className="flex items-center space-x-1 text-pastel-neutral-600 dark:text-pastel-neutral-400 hover:text-pastel-green-500 dark:hover:text-pastel-green-400 transition-colors"
                   >
-                    <span className="text-lg">🌸</span>
+                    <span className="text-lg">👏</span>
                     <span className="text-sm">{vent.reactions?.support || 0}</span>
                   </motion.button>
                 </div>
