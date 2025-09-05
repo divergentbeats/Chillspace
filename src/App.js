@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Preferences from './components/Preferences';
+import VentingVenue from './components/VentingVenue';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -176,6 +177,19 @@ function AnimatedRoutes() {
               transition={{ duration: 0.3 }}
             >
               <Preferences />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/vent"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <VentingVenue />
             </motion.div>
           }
         />
