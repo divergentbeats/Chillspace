@@ -8,41 +8,47 @@ function Navbar() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const scrollToSection = (sectionId) => {
-    // Smooth scroll to the section using native browser API with navbar offset
-    const element = document.getElementById(sectionId);
+  const handleNavigation = (item) => {
     setIsOpen(false); // Close mobile menu on navigation
-    if (element) {
-      const navbarHeight = 64; // Height of the navbar (h-16 = 4rem = 64px)
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - navbarHeight;
 
-      // Use requestAnimationFrame for smoother scrolling
-      const scrollTo = (targetY) => {
-        const startY = window.pageYOffset;
-        const distance = targetY - startY;
-        const duration = 800; // ms
-        let startTime = null;
+    if (item.isRoute) {
+      // Navigate to route
+      window.location.href = `/${item.id}`;
+    } else {
+      // Smooth scroll to section
+      const element = document.getElementById(item.id);
+      if (element) {
+        const navbarHeight = 64; // Height of the navbar (h-16 = 4rem = 64px)
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - navbarHeight;
 
-        const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        // Use requestAnimationFrame for smoother scrolling
+        const scrollTo = (targetY) => {
+          const startY = window.pageYOffset;
+          const distance = targetY - startY;
+          const duration = 800; // ms
+          let startTime = null;
 
-        const animation = (currentTime) => {
-          if (startTime === null) startTime = currentTime;
-          const timeElapsed = currentTime - startTime;
-          const progress = Math.min(timeElapsed / duration, 1);
-          const easeProgress = easeInOutQuad(progress);
+          const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-          window.scrollTo(0, startY + distance * easeProgress);
+          const animation = (currentTime) => {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            const easeProgress = easeInOutQuad(progress);
 
-          if (progress < 1) {
-            requestAnimationFrame(animation);
-          }
+            window.scrollTo(0, startY + distance * easeProgress);
+
+            if (progress < 1) {
+              requestAnimationFrame(animation);
+            }
+          };
+
+          requestAnimationFrame(animation);
         };
 
-        requestAnimationFrame(animation);
-      };
-
-      scrollTo(offsetPosition);
+        scrollTo(offsetPosition);
+      }
     }
   };
 
@@ -54,6 +60,7 @@ function Navbar() {
     { id: 'features', label: 'Features' },
     { id: 'productivity', label: 'Productivity' },
     { id: 'habits', label: 'Habits' },
+    { id: 'vent', label: 'Venting Venue', isRoute: true },
     { id: 'coming-soon', label: 'Coming Soon' }
   ];
 
@@ -87,7 +94,7 @@ function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -2 }}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => handleNavigation(item)}
                 className="relative text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 text-sm font-medium transition-colors duration-300 group"
               >
                 {item.label}
@@ -203,7 +210,7 @@ function Navbar() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => scrollToSection(item.id)}
+              onClick={() => handleNavigation(item)}
               className="block w-full text-left text-pastel-neutral-700 dark:text-pastel-neutral-200 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors"
             >
               {item.label}
