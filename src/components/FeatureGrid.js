@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function FeatureGrid() {
+  const navigate = useNavigate();
+
   const features = [
     {
       id: 1,
@@ -47,8 +50,12 @@ function FeatureGrid() {
   ];
 
   const handleCardClick = (featureId) => {
-    // Placeholder function for future navigation
-    console.log(`Navigating to ${featureId}`);
+    if (featureId === 1) {
+      navigate('/vent');
+    } else {
+      // Placeholder for other features
+      console.log(`Navigating to ${featureId}`);
+    }
   };
 
   return (

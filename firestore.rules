@@ -13,6 +13,19 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
     }
 
+    // Allow authenticated users to read/write replies for the venting venue
+    match /replies/{replyId} {
+      allow read: if true; // Allow anyone to read replies
+      allow create: if request.auth != null || request.auth == null; // Allow both authenticated and anonymous users to create replies
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+    }
+
+    // Allow authenticated users to read/write votes for the venting venue
+    match /votes/{voteId} {
+      allow read: if true; // Allow anyone to read votes
+      allow create, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
     // Default deny all other access
     match /{document=**} {
       allow read, write: if false;
