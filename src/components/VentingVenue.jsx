@@ -189,21 +189,54 @@ const VentingVenue = () => {
   };
 
   const handleReaction = async (ventId, reactionType) => {
-    // For now, we'll just update the local state
-    // In a real implementation, you'd update this in Firebase
-    setVents(prevVents =>
-      prevVents.map(vent =>
-        vent.id === ventId
-          ? {
-              ...vent,
-              reactions: {
-                ...vent.reactions,
-                [reactionType]: vent.reactions[reactionType] + 1
-              }
-            }
-          : vent
-      )
-    );
+    if (!user) {
+      alert('You must be logged in to react.');
+      return;
+    }
+
+    const ventRef = doc(db, 'vents', ventId);
+    const vent = vents.find(v => v.id === ventId);
+    if (!vent) return;
+
+    // Initialize userReactions map if not present
+    const userReactions = vent.userReactions || {};
+
+    // Check if user already reacted with this reactionType
+    if (userReactions[user.uid] && userReactions[user.uid].includes(reactionType)) {
+      alert('You have already reacted with this reaction.');
+      return;
+    }
+
+    // Update userReactions for this user
+    const updatedUserReactions = { ...userReactions };
+    if (updatedUserReactions[user.uid]) {
+      updatedUserReactions[user.uid].push(reactionType);
+    } else {
+      updatedUserReactions[user.uid] = [reactionType];
+    }
+
+    // Update reactions count
+    const updatedReactions = { ...vent.reactions };
+    updatedReactions[reactionType] = (updatedReactions[reactionType] || 0) + 1;
+
+    try {
+      await updateDoc(ventRef, {
+        reactions: updatedReactions,
+        userReactions: updatedUserReactions
+      });
+
+      // Update local state
+      setVents(prevVents =>
+        prevVents.map(v =>
+          v.id === ventId
+            ? { ...v, reactions: updatedReactions, userReactions: updatedUserReactions }
+            : v
+        )
+      );
+    } catch (error) {
+      console.error('Error updating reaction:', error);
+      alert('Failed to update reaction. Please try again.');
+    }
   };
 
   return (
