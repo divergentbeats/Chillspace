@@ -5,7 +5,7 @@ import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useTheme } from '../context/ThemeContext';
 import LoginBackground from './LoginBackground';
-import { ThemeSwitch } from 'react-theme-switch-animation';
+import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
 import './Preferences.css';
 
 const stepsData = [
@@ -45,6 +45,11 @@ const Preferences = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
+    animationType: ThemeAnimationType.BLUR_CIRCLE,
+    blurAmount: 4,
+    duration: 1000,
+  });
 
   useEffect(() => {
     const fetchPreferences = async () => {
@@ -106,11 +111,14 @@ const Preferences = () => {
     <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
       <LoginBackground />
       <div className="absolute top-4 right-4 z-20">
-        <ThemeSwitch
-          isDark={isDarkMode}
-          onToggle={toggleTheme}
-          size="small"
-        />
+        <button
+          ref={ref}
+          onClick={toggleSwitchTheme}
+          aria-label="Toggle theme"
+          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
+        >
+          {isDarkModeAnimated ? '🌙' : '☀️'}
+        </button>
       </div>
       <motion.div
         key={currentStep}

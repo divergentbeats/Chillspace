@@ -1,11 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
 import LoginBackground from './LoginBackground';
-import { ThemeSwitch } from 'react-theme-switch-animation';
 import './Login.css';
+
+
+// Starfield Background Component (copied from home page)
+const Starfield = () => {
+  const canvasRef = useRef(null);
+  const { isDarkMode, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    let stars = [];
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    const createStars = () => {
+      stars = [];
+      const numStars = isDarkMode ? 150 : 100;
+
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.5,
+          opacity: Math.random(),
+          twinkleSpeed: Math.random() * 0.02 + 0.005,
+          twinkleDirection: Math.random() > 0.5 ? 1 : -1,
+        });
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach((star) => {
+        // Update twinkle
+        star.opacity += star.twinkleSpeed * star.twinkleDirection;
+        if (star.opacity >= 1 || star.opacity <= 0) {
+          star.twinkleDirection *= -1;
+        }
+
+        // Draw star
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * (isDarkMode ? 0.8 : 0.6)})`;
+        ctx.fill();
+
+        // Add glow effect for dark mode
+        if (isDarkMode) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      });
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    resizeCanvas();
+    createStars();
+    animate();
+
+    const handleResize = () => {
+      resizeCanvas();
+      createStars();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, [isDarkMode]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 -z-20 pointer-events-none"
+      style={{ background: 'transparent' }}
+    />
+  );
+};
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -15,7 +102,13 @@ function Login() {
   const [errors, setErrors] = useState({});
   const { login, signInWithGoogle, isLoading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
+    animationType: ThemeAnimationType.BLUR_CIRCLE,
+    blurAmount: 4,
+    duration: 1000,
+  });
   const navigate = useNavigate();
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,20 +184,23 @@ function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
+    <div className={`relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <LoginBackground />
       <div className="absolute top-4 right-4 z-20">
-        <ThemeSwitch
-          isDark={isDarkMode}
-          onToggle={toggleTheme}
-          size="small"
-        />
+        <button
+          ref={ref}
+          onClick={toggleSwitchTheme}
+          aria-label="Toggle theme"
+          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
+        >
+          {isDarkModeAnimated ? '🌑' : '🌞'}
+        </button>
       </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-md w-full space-y-8 z-10 relative bg-white/20 dark:bg-gray-900/40 rounded-xl backdrop-blur-md p-8 shadow-lg"
+        className={`max-w-md w-full space-y-8 z-10 relative rounded-xl backdrop-blur-md p-8 shadow-lg ${isDarkMode ? 'bg-gray-800/80 text-white' : 'bg-white/20 text-pastel-neutral-900'}`}
       >
         <div>
           <motion.div
@@ -226,7 +322,9 @@ function Login() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-pastel-neutral-900 bg-white hover:bg-pastel-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow"
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow ${
+                isDarkMode ? 'text-white bg-pastel-blue-600 hover:bg-pastel-blue-700' : 'text-pastel-neutral-900 bg-white hover:bg-pastel-neutral-100'
+              }`}
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -244,10 +342,10 @@ function Login() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-pastel-neutral-300 dark:border-pastel-neutral-600" />
+              <div className={`w-full border-t ${isDarkMode ? 'border-pastel-neutral-600' : 'border-pastel-neutral-300'}`} />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-900 text-pastel-neutral-500 dark:text-pastel-neutral-400">Or continue with</span>
+              <span className={`px-2 ${isDarkMode ? 'bg-gray-900 text-pastel-neutral-400' : 'bg-white text-pastel-neutral-500'}`}>Or continue with</span>
             </div>
           </div>
 
@@ -269,7 +367,7 @@ function Login() {
             </motion.button>
           </div>
 
-          <div className="text-center text-sm text-pastel-neutral-600 dark:text-pastel-neutral-400">
+          <div className={`text-center text-sm ${isDarkMode ? 'text-pastel-neutral-400' : 'text-pastel-neutral-600'}`}>
             <button
               type="button"
               onClick={handleGuestLogin}
