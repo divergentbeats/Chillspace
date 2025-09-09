@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useTheme } from '../context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 import LoginBackground from './LoginBackground';
-import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
 import './Preferences.css';
 
 const stepsData = [
@@ -45,11 +45,8 @@ const Preferences = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
-    animationType: ThemeAnimationType.BLUR_CIRCLE,
-    blurAmount: 4,
-    duration: 1000,
-  });
+
+  // Removed useModeAnimation usage to fix ReferenceError
 
   useEffect(() => {
     const fetchPreferences = async () => {
@@ -112,12 +109,11 @@ const Preferences = () => {
       <LoginBackground />
       <div className="absolute top-4 right-4 z-20">
         <button
-          ref={ref}
-          onClick={toggleSwitchTheme}
+          onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
+          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400 transition-all duration-200"
         >
-          {isDarkModeAnimated ? '🌙' : '☀️'}
+          {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
         </button>
       </div>
       <motion.div

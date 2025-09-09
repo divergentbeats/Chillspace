@@ -12,6 +12,7 @@
 - [x] Fix preferences page background to match login page
   - Added import for LoginBackground component in Preferences.jsx
   - Now uses the same animated pastel blurred circles background as login page
+  - Added the same gradient background as login page for consistency
 
 ## Pending Tasks
 - [ ] Test the navigation by running the app and clicking the "Start Venting" button

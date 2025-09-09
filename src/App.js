@@ -109,14 +109,13 @@ function AppContent() {
   const location = useLocation();
   const isPreferencesPage = location.pathname === '/preferences';
   const { isDarkMode, toggleTheme } = useTheme();
-  const { ref, toggleSwitchTheme } = useModeAnimation();
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
       {!isPreferencesPage && <Starfield />}
       <Navbar />
       <div className="absolute top-4 right-4 z-20">
-        <button ref={ref} onClick={toggleSwitchTheme} className="px-3 py-1 rounded bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 transition-colors">
+        <button onClick={toggleTheme} className="px-3 py-1 rounded bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 transition-colors">
           {isDarkMode ? 'Dark Mode' : 'Light Mode'}
         </button>
       </div>
