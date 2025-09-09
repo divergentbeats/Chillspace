@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
+import { Sun, Moon } from 'lucide-react';
 import LoginBackground from './LoginBackground';
 import './Login.css';
+
 
 
 // Starfield Background Component (copied from home page)
@@ -102,11 +103,6 @@ function Login() {
   const [errors, setErrors] = useState({});
   const { login, signInWithGoogle, isLoading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
-    animationType: ThemeAnimationType.BLUR_CIRCLE,
-    blurAmount: 4,
-    duration: 1000,
-  });
   const navigate = useNavigate();
 
 
@@ -188,12 +184,15 @@ function Login() {
       <LoginBackground />
       <div className="absolute top-4 right-4 z-20">
         <button
-          ref={ref}
-          onClick={toggleSwitchTheme}
+          onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
+          className="p-2 rounded-xl bg-pastel-neutral-100 dark:bg-pastel-neutral-800 text-pastel-neutral-600 dark:text-pastel-neutral-300 hover:bg-pastel-blue-100 dark:hover:bg-pastel-blue-900/30 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 transition-all duration-300 shadow-soft flex items-center justify-center"
         >
-          {isDarkModeAnimated ? '🌑' : '🌞'}
+          {isDarkMode ? (
+            <Sun className="w-5 h-5" />
+          ) : (
+            <Moon className="w-5 h-5" />
+          )}
         </button>
       </div>
       <motion.div
