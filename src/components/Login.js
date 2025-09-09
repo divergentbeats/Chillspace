@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LoginStarfield from './LoginStarfield';
+import { useTheme } from '../context/ThemeContext';
+import LoginBackground from './LoginBackground';
+import { ThemeSwitch } from 'react-theme-switch-animation';
 import './Login.css';
 
 function Login() {
@@ -12,6 +14,7 @@ function Login() {
   });
   const [errors, setErrors] = useState({});
   const { login, signInWithGoogle, isLoading } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -88,8 +91,15 @@ function Login() {
   };
 
   return (
-    <div className="container relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
-      <LoginStarfield />
+    <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
+      <LoginBackground />
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeSwitch
+          isDark={isDarkMode}
+          onToggle={toggleTheme}
+          size="small"
+        />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -14,23 +14,23 @@ const LoginStarfield = () => {
       canvas.height = window.innerHeight;
     };
 
-    const createStars = () => {
-      stars = [];
-      const numStars = 80;
+const createStars = () => {
+  stars = [];
+  const numStars = 30;
 
-      for (let i = 0; i < numStars; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.random() * 1.2 + 0.3,
-          opacity: Math.random() * 0.5 + 0.3,
-          twinkleSpeed: Math.random() * 0.005 + 0.001,
-          twinkleDirection: Math.random() > 0.5 ? 1 : -1,
-          moveX: (Math.random() - 0.5) * 0.02,
-          moveY: (Math.random() - 0.5) * 0.02,
-        });
-      }
-    };
+  for (let i = 0; i < numStars; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 1.2 + 0.3,
+      opacity: Math.random() * 0.5 + 0.3,
+      twinkleSpeed: Math.random() * 0.005 + 0.001,
+      twinkleDirection: Math.random() > 0.5 ? 1 : -1,
+      moveX: 0,
+      moveY: 0,
+    });
+  }
+};
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -56,10 +56,10 @@ const LoginStarfield = () => {
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+        // ctx.shadowBlur = 8;
+        // ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
         ctx.fill();
-        ctx.shadowBlur = 0;
+        // ctx.shadowBlur = 0;
       });
 
       animationId = requestAnimationFrame(animate);

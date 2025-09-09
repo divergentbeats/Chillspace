@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { useModeAnimation } from 'react-theme-switch-animation';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import QuoteSection from './components/QuoteSection';
@@ -106,10 +107,20 @@ const Starfield = () => {
 };
 
 function AppContent() {
+  const location = useLocation();
+  const isPreferencesPage = location.pathname === '/preferences';
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { ref, toggleSwitchTheme } = useModeAnimation();
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200">
-      <Starfield />
+      {!isPreferencesPage && <Starfield />}
       <Navbar />
+      <div className="absolute top-4 right-4 z-20">
+        <button ref={ref} onClick={toggleSwitchTheme} className="px-3 py-1 rounded bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 transition-colors">
+          {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+        </button>
+      </div>
       {/* Each section is given an ID to act as a scroll target */}
       <div id="hero">
         <Hero />

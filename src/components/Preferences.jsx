@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useTheme } from '../context/ThemeContext';
+import LoginBackground from './LoginBackground';
+import { ThemeSwitch } from 'react-theme-switch-animation';
 import './Preferences.css';
 
 const stepsData = [
@@ -41,6 +44,7 @@ const Preferences = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
     const fetchPreferences = async () => {
@@ -99,14 +103,22 @@ const Preferences = () => {
   };
 
   return (
-    <div className="container fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-pastel-blue-500 to-pastel-purple-600 bg-opacity-30 backdrop-blur-sm">
+    <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
+      <LoginBackground />
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeSwitch
+          isDark={isDarkMode}
+          onToggle={toggleTheme}
+          size="small"
+        />
+      </div>
       <motion.div
         key={currentStep}
         initial={{ opacity: 0, x: 100 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.4 }}
-        className="bg-white/20 dark:bg-gray-900/40 rounded-xl shadow-lg max-w-md w-full p-6 relative z-10 text-pastel-neutral-900 dark:text-white"
+        className="bg-white/20 dark:bg-gray-900/40 rounded-xl shadow-lg max-w-3xl w-full p-6 relative z-10 text-pastel-neutral-900 dark:text-white"
       >
         <h2 className="text-xl font-semibold mb-4">{stepsData[currentStep].title}</h2>
         <div className="space-y-3 mb-6">
