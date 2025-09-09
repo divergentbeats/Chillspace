@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
 function Signup() {
   const [formData, setFormData] = useState({
     email: '',
@@ -14,11 +13,6 @@ function Signup() {
   const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
-    animationType: ThemeAnimationType.BLUR_CIRCLE,
-    blurAmount: 4,
-    duration: 1000,
-  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,12 +83,11 @@ function Signup() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 sm:px-6 lg:px-8">
       <div className="absolute top-4 right-4 z-20">
         <button
-          ref={ref}
-          onClick={toggleSwitchTheme}
+          onClick={toggleTheme}
           aria-label="Toggle theme"
           className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
         >
-          {isDarkModeAnimated ? '🌑' : '🌞'}
+          {isDarkMode ? '🌙' : '☀️'}
         </button>
       </div>
       <motion.div
