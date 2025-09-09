@@ -108,7 +108,7 @@ const Preferences = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-200 px-4 sm:px-6 lg:px-8">
       <LoginBackground />
       <div className="absolute top-4 right-4 z-20">
         <button
