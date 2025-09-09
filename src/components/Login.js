@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useModeAnimation, ThemeAnimationType } from 'react-theme-switch-animation';
 import LoginBackground from './LoginBackground';
 import './Login.css';
 
@@ -102,11 +101,6 @@ function Login() {
   const [errors, setErrors] = useState({});
   const { login, signInWithGoogle, isLoading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { ref, toggleSwitchTheme, isDarkMode: isDarkModeAnimated } = useModeAnimation({
-    animationType: ThemeAnimationType.BLUR_CIRCLE,
-    blurAmount: 4,
-    duration: 1000,
-  });
   const navigate = useNavigate();
 
 
