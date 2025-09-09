@@ -14,7 +14,6 @@
     "react-router-dom": "^7.8.2",
     "react-scripts": "5.0.1",
     "react-scroll": "^1.9.3",
-    "react-theme-switch-animation": "^0.4.0",
     "react-tsparticles": "^2.12.2",
     "tsparticles": "^2.9.3",
     "web-vitals": "^2.1.4"

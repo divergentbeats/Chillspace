@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
-import { useModeAnimation } from 'react-theme-switch-animation';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import QuoteSection from './components/QuoteSection';
