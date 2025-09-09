@@ -27,38 +27,7 @@ function ComingSoon() {
       color: "pink",
       status: "Coming Soon"
     },
-    {
-      id: 4,
-      title: "AI Companion",
-      description: "Personalized conversations and mental health support",
-      icon: Brain,
-      color: "indigo",
-      status: "Coming Soon"
-    },
-    {
-      id: 5,
-      title: "Goal Setting",
-      description: "Set and track personal and wellness goals",
-      icon: Calendar,
-      color: "green",
-      status: "Coming Soon"
-    },
-    {
-      id: 6,
-      title: "Community",
-      description: "Connect with like-minded individuals on similar journeys",
-      icon: Users,
-      color: "yellow",
-      status: "Coming Soon"
-    },
-    {
-      id: 7,
-      title: "Privacy Tools",
-      description: "Advanced security and data protection features",
-      icon: Shield,
-      color: "gray",
-      status: "Coming Soon"
-    },
+   
     {
       id: 8,
       title: "Smart Insights",

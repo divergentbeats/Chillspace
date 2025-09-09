@@ -1,73 +1,171 @@
-import React, { useState } from 'react';
-import { Target, BookOpen, Heart, Zap, CheckCircle, Plus, Trash2, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Target, BookOpen, Heart, Zap, CheckCircle, Plus, Trash2, Bell, Calendar } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../lib/firebase';
+import { collection, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 function ProductivityMode() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Work');
+  const [dueDate, setDueDate] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [isProductivityMode, setIsProductivityMode] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const categories = [
-    { id: 'Work', name: 'Work', icon: Target, color: 'indigo', bgColor: 'bg-indigo-50 dark:bg-indigo-900/20', borderColor: 'border-indigo-200 dark:border-indigo-700' },
-    { id: 'Study', name: 'Study', icon: BookOpen, color: 'blue', bgColor: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-blue-200 dark:border-blue-700' },
-    { id: 'Self-care', name: 'Self-care', icon: Heart, color: 'pink', bgColor: 'bg-pink-50 dark:bg-pink-900/20', borderColor: 'border-pink-200 dark:border-pink-700' },
-    { id: 'Personal', name: 'Personal', icon: Zap, color: 'yellow', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-700' }
+    { id: 'All', name: 'All', icon: Target, color: 'gray' },
+    { id: 'Work', name: 'Work', icon: Target, color: 'indigo' },
+    { id: 'Study', name: 'Study', icon: BookOpen, color: 'blue' },
+    { id: 'Self-care', name: 'Self-care', icon: Heart, color: 'pink' },
+    { id: 'Personal', name: 'Personal', icon: Zap, color: 'yellow' }
   ];
 
-  const addTask = (e) => {
+  // Load tasks from Firebase when user changes
+  useEffect(() => {
+    const loadTasks = async () => {
+      if (!user) {
+        setTasks([]);
+        setStreak(0);
+        return;
+      }
+      setLoading(true);
+      try {
+        const userTasksRef = doc(db, 'productivityTasks', user.uid);
+        const userTasksSnap = await getDoc(userTasksRef);
+        if (userTasksSnap.exists()) {
+          const data = userTasksSnap.data();
+          setTasks(data.tasks || []);
+          setStreak(data.streak || 0);
+        } else {
+          setTasks([]);
+          setStreak(0);
+        }
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        setTasks([]);
+        setStreak(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTasks();
+  }, [user]);
+
+  // Save tasks to Firebase whenever tasks or streak change
+  useEffect(() => {
+    const saveTasks = async () => {
+      if (!user || loading) return;
+      try {
+        const userTasksRef = doc(db, 'productivityTasks', user.uid);
+        await setDoc(userTasksRef, {
+          tasks: tasks,
+          streak: streak,
+          lastUpdated: new Date()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving tasks:', error);
+      }
+    };
+    saveTasks();
+  }, [tasks, streak, user, loading]);
+
+  const addTask = async (e) => {
     e.preventDefault();
+    if (!user) {
+      alert('Please log in to add tasks.');
+      return;
+    }
     if (newTask.trim()) {
-      setTasks([...tasks, { 
-        id: Date.now(), 
-        text: newTask.trim(), 
-        completed: false, 
-        category: selectedCategory 
-      }]);
-      setNewTask('');
+      setLoading(true);
+      const taskCategory = selectedCategory === 'All' ? 'Work' : selectedCategory;
+      const task = {
+        id: Date.now(),
+        text: newTask.trim(),
+        completed: false,
+        category: taskCategory,
+        dueDate: dueDate || null,
+      };
+      try {
+        const userTasksRef = doc(db, 'productivityTasks', user.uid);
+        const userTasksSnap = await getDoc(userTasksRef);
+        if (userTasksSnap.exists()) {
+          await updateDoc(userTasksRef, {
+            tasks: arrayUnion(task)
+          });
+        } else {
+          await setDoc(userTasksRef, {
+            tasks: [task]
+          });
+        }
+        setTasks(prev => [...prev, task]);
+        setNewTask('');
+        setDueDate('');
+      } catch (error) {
+        console.error('Error adding task:', error);
+        alert('Failed to add task. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const toggleTask = (taskId) => {
-    setTasks(tasks.map(task => 
+    const updatedTasks = tasks.map(task =>
       task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
+    );
+    setTasks(updatedTasks);
+
+    // Update streak if all tasks are completed
+    const allCompleted = updatedTasks.length > 0 && updatedTasks.every(t => t.completed);
+    if (allCompleted) setStreak(streak + 1);
   };
 
   const deleteTask = (taskId) => {
     setTasks(tasks.filter(task => task.id !== taskId));
   };
 
+  // Notification handler
   const handleNotifications = () => {
-    console.log('Notifications enabled!');
-    alert('Notifications feature coming soon!');
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification("Stay focused! 🚀 Keep working on your tasks.");
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            new Notification("Notifications enabled! We'll remind you to stay focused.");
+          }
+        });
+      }
+    } else {
+      alert("Your browser does not support notifications.");
+    }
   };
 
-  const getCategoryIcon = (categoryId) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.icon : Target;
-  };
-
-  const getCategoryColor = (categoryId) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    if (!category) return 'indigo';
-    
-    const colorMap = {
-      indigo: 'text-indigo-600 dark:text-indigo-400',
-      blue: 'text-blue-600 dark:text-blue-400',
-      pink: 'text-pink-600 dark:text-pink-400',
-      yellow: 'text-yellow-600 dark:text-yellow-400'
+  const getCategoryColor = (color) => {
+    const map = {
+      indigo: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30',
+      blue: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
+      pink: 'text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-900/30',
+      yellow: 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30',
+      gray: 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-900/30',
     };
-    return colorMap[category.color] || 'text-indigo-600 dark:text-indigo-400';
+    return map[color] || map.indigo;
   };
 
   const completedTasks = tasks.filter(task => task.completed).length;
   const totalTasks = tasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  // Filter tasks based on selectedCategory
+  const filteredTasks = selectedCategory === 'All' ? tasks : tasks.filter(task => task.category === selectedCategory);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        {/* Header with Toggle */}
+        
+        {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10">
           <div className="text-center lg:text-left mb-6 lg:mb-0">
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-3 font-sans">
@@ -78,7 +176,7 @@ function ProductivityMode() {
             </p>
           </div>
           
-          {/* Toggle Switch */}
+          {/* Toggle */}
           <div className="flex items-center justify-center lg:justify-end">
             <label className="flex items-center cursor-pointer">
               <span className="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">Productivity Mode</span>
@@ -107,9 +205,9 @@ function ProductivityMode() {
               <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Progress</span>
               <span className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">{progressPercentage}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-700 ease-in-out"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
@@ -120,24 +218,24 @@ function ProductivityMode() {
         )}
 
         {/* Category Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {categories.map((category) => {
             const IconComponent = category.icon;
             const isSelected = selectedCategory === category.id;
-            const categoryTasks = tasks.filter(task => task.category === category.id);
+            const categoryTasks = category.id === 'All' ? tasks : tasks.filter(task => task.category === category.id);
             const completedCategoryTasks = categoryTasks.filter(task => task.completed).length;
-            
+
             return (
               <div
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`${category.bgColor} ${category.borderColor} border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-800' : ''
+                className={`rounded-2xl p-4 transition-all duration-300 border-2 cursor-pointer hover:shadow-md ${
+                  isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-800 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="text-center">
                   <div className="flex justify-center mb-3">
-                    <IconComponent className={`w-8 h-8 ${getCategoryColor(category.id)}`} />
+                    <IconComponent className={`w-8 h-8 ${getCategoryColor(category.color)}`} />
                   </div>
                   <h3 className="font-semibold text-gray-800 dark:text-white mb-2">{category.name}</h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -151,7 +249,7 @@ function ProductivityMode() {
 
         {/* Input Form */}
         {isProductivityMode && (
-          <form onSubmit={addTask} className="mb-8">
+          <form onSubmit={addTask} className="mb-8 space-y-4">
             <div className="flex gap-4">
               <input
                 type="text"
@@ -160,18 +258,25 @@ function ProductivityMode() {
                 placeholder="Enter a new task..."
                 className="flex-1 px-6 py-4 border border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200 text-lg font-sans bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+              />
               <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg font-sans flex items-center gap-2"
+                disabled={loading}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg font-sans flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
-                Add Task
+                {loading ? 'Adding...' : 'Add Task'}
               </button>
             </div>
           </form>
         )}
 
-        {/* Notifications Button */}
+        {/* Notifications */}
         {isProductivityMode && (
           <div className="text-center mb-8">
             <button
@@ -187,16 +292,17 @@ function ProductivityMode() {
         {/* Tasks List */}
         {isProductivityMode && (
           <div className="space-y-4">
-            {tasks.length === 0 ? (
+            {filteredTasks.length === 0 ? (
               <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Target className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-lg font-sans">No tasks yet. Add your first task above!</p>
+                <p className="text-lg font-sans">No tasks in this category yet. Add your first task!</p>
               </div>
             ) : (
-              tasks.map((task) => {
-                const IconComponent = getCategoryIcon(task.category);
+              filteredTasks.map((task) => {
+                const category = categories.find(cat => cat.id === task.category);
+                const IconComponent = category ? category.icon : Target;
                 return (
                   <div
                     key={task.id}
@@ -207,7 +313,7 @@ function ProductivityMode() {
                     }`}
                   >
                     {/* Category Icon */}
-                    <div className={`p-2 rounded-lg ${getCategoryColor(task.category).replace('text-', 'bg-').replace('dark:text-', 'dark:bg-')} bg-opacity-10 dark:bg-opacity-20`}>
+                    <div className={`p-2 rounded-lg ${getCategoryColor(category.color)}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     
@@ -232,11 +338,11 @@ function ProductivityMode() {
                       }`}
                     >
                       {task.text}
-                    </span>
-
-                    {/* Category Badge */}
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(task.category)} bg-opacity-10 dark:bg-opacity-20`}>
-                      {task.category}
+                      {task.dueDate && (
+                        <span className="ml-3 text-xs text-gray-500 dark:text-gray-400">
+                          (Due: {task.dueDate})
+                        </span>
+                      )}
                     </span>
 
                     {/* Delete Button */}
@@ -253,14 +359,17 @@ function ProductivityMode() {
           </div>
         )}
 
-        {/* Inactive State */}
+        {/* Summary if Mode Off */}
         {!isProductivityMode && (
           <div className="text-center py-16 text-gray-500 dark:text-gray-400">
             <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
               <Zap className="w-10 h-10 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Productivity Mode is Off</h3>
-            <p className="text-lg font-sans">Toggle the switch above to activate productivity mode and start managing your tasks!</p>
+            <p className="text-lg font-sans">Toggle the switch to manage your tasks.</p>
+            <p className="mt-4 text-indigo-500 dark:text-indigo-300 font-semibold">
+              Last streak: {streak} day(s) of full completion 🎉
+            </p>
           </div>
         )}
       </div>

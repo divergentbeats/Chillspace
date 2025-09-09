@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../lib/firebase';
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 function HabitTracker() {
+  const { user } = useAuth();
   const [habits, setHabits] = useState([
     { id: 1, name: 'Drink Water', icon: '💧', color: 'blue' },
     { id: 2, name: 'Exercise', icon: '🏃‍♀️', color: 'green' },
@@ -10,6 +14,7 @@ function HabitTracker() {
   const [newHabit, setNewHabit] = useState('');
   const [completedDays, setCompletedDays] = useState({});
   const [currentWeek, setCurrentWeek] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   // Generate dates for the current week (7 days)
   const getWeekDates = (weekOffset) => {
@@ -28,18 +33,74 @@ function HabitTracker() {
 
   const weekDates = getWeekDates(currentWeek);
 
-  // Initialize completed days from localStorage
+  // Load habits and completed days from Firebase when user changes
   useEffect(() => {
-    const saved = localStorage.getItem('habitTracker');
-    if (saved) {
-      setCompletedDays(JSON.parse(saved));
-    }
-  }, []);
+    const loadHabitData = async () => {
+      if (!user) {
+        setHabits([
+          { id: 1, name: 'Drink Water', icon: '💧', color: 'blue' },
+          { id: 2, name: 'Exercise', icon: '🏃‍♀️', color: 'green' },
+          { id: 3, name: 'Journal', icon: '✍️', color: 'purple' },
+          { id: 4, name: 'Meditate', icon: '🧘‍♀️', color: 'indigo' }
+        ]);
+        setCompletedDays({});
+        return;
+      }
+      setLoading(true);
+      try {
+        const userHabitsRef = doc(db, 'habitTracker', user.uid);
+        const userHabitsSnap = await getDoc(userHabitsRef);
+        if (userHabitsSnap.exists()) {
+          const data = userHabitsSnap.data();
+          setHabits(data.habits || [
+            { id: 1, name: 'Drink Water', icon: '💧', color: 'blue' },
+            { id: 2, name: 'Exercise', icon: '🏃‍♀️', color: 'green' },
+            { id: 3, name: 'Journal', icon: '✍️', color: 'purple' },
+            { id: 4, name: 'Meditate', icon: '🧘‍♀️', color: 'indigo' }
+          ]);
+          setCompletedDays(data.completedDays || {});
+        } else {
+          setHabits([
+            { id: 1, name: 'Drink Water', icon: '💧', color: 'blue' },
+            { id: 2, name: 'Exercise', icon: '🏃‍♀️', color: 'green' },
+            { id: 3, name: 'Journal', icon: '✍️', color: 'purple' },
+            { id: 4, name: 'Meditate', icon: '🧘‍♀️', color: 'indigo' }
+          ]);
+          setCompletedDays({});
+        }
+      } catch (error) {
+        console.error('Error loading habit data:', error);
+        setHabits([
+          { id: 1, name: 'Drink Water', icon: '💧', color: 'blue' },
+          { id: 2, name: 'Exercise', icon: '🏃‍♀️', color: 'green' },
+          { id: 3, name: 'Journal', icon: '✍️', color: 'purple' },
+          { id: 4, name: 'Meditate', icon: '🧘‍♀️', color: 'indigo' }
+        ]);
+        setCompletedDays({});
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadHabitData();
+  }, [user]);
 
-  // Save to localStorage whenever completedDays changes
+  // Save habits and completed days to Firebase whenever they change
   useEffect(() => {
-    localStorage.setItem('habitTracker', JSON.stringify(completedDays));
-  }, [completedDays]);
+    const saveHabitData = async () => {
+      if (!user || loading) return;
+      try {
+        const userHabitsRef = doc(db, 'habitTracker', user.uid);
+        await setDoc(userHabitsRef, {
+          habits: habits,
+          completedDays: completedDays,
+          lastUpdated: new Date()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error saving habit data:', error);
+      }
+    };
+    saveHabitData();
+  }, [habits, completedDays, user, loading]);
 
   const addHabit = (e) => {
     e.preventDefault();
