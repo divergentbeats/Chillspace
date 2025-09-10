@@ -1,19 +1,33 @@
-# TODO List
+# TODO: Enhance Community Connect Page with Discord API Integration
 
-## Completed Tasks
-- [x] Connect "Start Venting" button in FeatureGrid to VentingVenue component
-  - Updated FeatureGrid.js to import useNavigate from react-router-dom
-  - Added navigation logic to redirect to '/vent' when featureId === 1
-  - Route '/vent' already exists in App.js rendering VentingVenue
-- [x] Fix login page sizing issues
-  - Updated Login.css to change container from fixed to relative positioning
-  - Optimized background animation to reduce lag by simplifying gradients and reducing duration
-  - Replaced heavy background with lightweight LoginBackground component
-- [x] Fix preferences page background to match login page
-  - Added import for LoginBackground component in Preferences.jsx
-  - Now uses the same animated pastel blurred circles background as login page
-  - Added the same gradient background as login page for consistency
+## Overview
+Integrate Discord API for real-time community data, apply consistent homepage styling, and connect to user tags for personalized recommendations.
 
-## Pending Tasks
-- [ ] Test the navigation by running the app and clicking the "Start Venting" button
-- [ ] Implement navigation for other features (ids 2-6) if needed
+## Steps
+
+### 1. Create Discord API Utility
+- [x] Create `src/lib/discord.js` with function to fetch Discord server details using invite codes
+- [x] Implement error handling for invalid invites
+- [x] Use API: GET https://discord.com/api/v10/invites/{invite_code}?with_counts=true
+
+### 2. Update CommunityConnect.js
+- [x] Modify data fetching to augment Firestore communities with Discord API data
+- [x] Update community cards to display dynamic data: server name, icon, online members, total members
+- [x] Ensure join buttons redirect to Discord invite links
+- [x] Handle API failures gracefully (fallback to static data)
+
+### 3. Maintain UI Consistency
+- [x] Verify styling matches homepage (pastel gradients, rounded corners, animations)
+- [x] Ensure smooth animations and consistent fonts
+- [x] Keep modular structure for easy addition of new servers
+
+### 4. Test and Validate
+- [x] Test data fetching on page load
+- [x] Verify recommendations based on user tags
+- [x] Check error handling for invalid invites
+- [x] Ensure UI responsiveness and animations
+
+### 5. Finalize
+- [x] Review code for modularity
+- [x] Confirm new servers can be added easily via Firestore
+- [x] Clean up and optimize
