@@ -1,0 +1,162 @@
+[
+  {
+    "id": "1",
+    "name": "Tech Enthusiasts",
+    "description": "A community for tech lovers to discuss the latest in technology, gadgets, and innovations.",
+    "link": "https://discord.gg/reactiflux",
+    "memberCount": 15000,
+    "onlineMembers": 1200,
+    "tags": ["Tech", "Programming", "Innovation"],
+    "icon": "💻"
+  },
+  {
+    "id": "2",
+    "name": "Mental Health Support",
+    "description": "A safe space to share experiences and support each other in mental health journeys.",
+    "link": "https://discord.gg/therapy",
+    "memberCount": 8000,
+    "onlineMembers": 500,
+    "tags": ["Mental Health", "Support", "Wellness"],
+    "icon": "🧠"
+  },
+  {
+    "id": "3",
+    "name": "Productivity Masters",
+    "description": "Tips, tools, and discussions on boosting productivity and time management.",
+    "link": "https://discord.gg/notion",
+    "memberCount": 12000,
+    "onlineMembers": 800,
+    "tags": ["Productivity", "Time Management", "Tools"],
+    "icon": "⚡"
+  },
+  {
+    "id": "4",
+    "name": "Gaming Hub",
+    "description": "Connect with gamers for discussions, game reviews, and multiplayer sessions.",
+    "link": "https://discord.gg/discord-developers",
+    "memberCount": 25000,
+    "onlineMembers": 3000,
+    "tags": ["Gaming", "Multiplayer"],
+    "icon": "🎮"
+  },
+  {
+    "id": "5",
+    "name": "Education Network",
+    "description": "Share resources, study tips, and collaborate on educational projects.",
+    "link": "https://discord.gg/python",
+    "memberCount": 10000,
+    "onlineMembers": 600,
+    "tags": ["Education", "Study Tips", "Resources"],
+    "icon": "📚"
+  },
+  {
+    "id": "6",
+    "name": "Creative Writers",
+    "description": "A community for writers to share stories, get feedback, and inspire each other.",
+    "link": "https://discord.gg/writing",
+    "memberCount": 7000,
+    "onlineMembers": 400,
+    "tags": ["Writing", "Creative"],
+    "icon": "✍️"
+  },
+  {
+    "id": "7",
+    "name": "Fitness Fanatics",
+    "description": "Motivate each other with workout routines, nutrition advice, and fitness goals.",
+    "link": "https://discord.gg/gym",
+    "memberCount": 18000,
+    "onlineMembers": 1500,
+    "tags": ["Fitness", "Health", "Motivation"],
+    "icon": "💪"
+  },
+  {
+    "id": "8",
+    "name": "Music Lovers",
+    "description": "Discuss music genres, share playlists, and connect with fellow music enthusiasts.",
+    "link": "https://discord.gg/midis",
+    "memberCount": 14000,
+    "onlineMembers": 1000,
+    "tags": ["Music", "Genres", "Playlists"],
+    "icon": "🎵"
+  },
+  {
+    "id": "9",
+    "name": "AI & Machine Learning",
+    "description": "Discuss the latest in AI and machine learning technologies and projects.",
+    "link": "https://discord.gg/machine-learning",
+    "memberCount": 9000,
+    "onlineMembers": 700,
+    "tags": ["Tech", "Programming", "Innovation"],
+    "icon": "🤖"
+  },
+  {
+    "id": "10",
+    "name": "Wellness Warriors",
+    "description": "Community focused on mental wellness, mindfulness, and self-care practices.",
+    "link": "https://discord.gg/meditation",
+    "memberCount": 6000,
+    "onlineMembers": 450,
+    "tags": ["Mental Health", "Support", "Wellness"],
+    "icon": "🌿"
+  },
+  {
+    "id": "11",
+    "name": "Time Management Pros",
+    "description": "Share tips and tools to master time management and productivity.",
+    "link": "https://discord.gg/todoist",
+    "memberCount": 7000,
+    "onlineMembers": 500,
+    "tags": ["Productivity", "Time Management", "Tools"],
+    "icon": "⏰"
+  },
+  {
+    "id": "12",
+    "name": "Multiplayer Gamers",
+    "description": "Find teammates and discuss strategies for multiplayer games.",
+    "link": "https://discord.gg/valorant",
+    "memberCount": 15000,
+    "onlineMembers": 1200,
+    "tags": ["Gaming", "Multiplayer"],
+    "icon": "🎯"
+  },
+  {
+    "id": "13",
+    "name": "Study Group Central",
+    "description": "Collaborate with peers and share study resources.",
+    "link": "https://discord.gg/studying",
+    "memberCount": 8000,
+    "onlineMembers": 600,
+    "tags": ["Education", "Study Tips", "Resources"],
+    "icon": "📖"
+  },
+  {
+    "id": "14",
+    "name": "Creative Minds",
+    "description": "A space for artists, writers, and creators to share and inspire.",
+    "link": "https://discord.gg/art",
+    "memberCount": 5000,
+    "onlineMembers": 350,
+    "tags": ["Writing", "Creative"],
+    "icon": "🎨"
+  },
+  {
+    "id": "15",
+    "name": "Health & Fitness",
+    "description": "Discuss fitness routines, nutrition, and healthy living.",
+    "link": "https://discord.gg/fit",
+    "memberCount": 12000,
+    "onlineMembers": 900,
+    "tags": ["Fitness", "Health", "Motivation"],
+    "icon": "🏋️"
+  },
+  {
+    "id": "16",
+    "name": "Music Jam",
+    "description": "Join live music sessions and share your favorite tunes.",
+    "link": "https://discord.gg/spotify",
+    "memberCount": 9000,
+    "onlineMembers": 700,
+    "tags": ["Music", "Genres", "Playlists"],
+    "icon": "🎷"
+  }
+]
