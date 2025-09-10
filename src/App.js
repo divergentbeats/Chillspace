@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -16,6 +16,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import Preferences from './components/Preferences';
 import VentingVenue from './components/VentingVenue';
+import CommunityConnect from './components/CommunityConnect';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -199,6 +200,19 @@ function AnimatedRoutes() {
               transition={{ duration: 0.3 }}
             >
               <VentingVenue />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/community-connect"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <CommunityConnect />
             </motion.div>
           }
         />
