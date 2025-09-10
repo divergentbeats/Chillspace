@@ -78,11 +78,16 @@ function Navbar() {
             whileHover={{ scale: 1.05 }}
             className="flex-shrink-0 p-1"
           >
-            <img
-              src="/logo.png"
-              alt="Chillspace Logo"
-              className="h-10 w-auto object-contain"
-            />
+            <button
+              onClick={() => window.location.href = '/'}
+              className="focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:ring-offset-2 rounded-lg"
+            >
+              <img
+                src="/logo.png"
+                alt="Chillspace Logo"
+                className="h-10 w-auto object-contain cursor-pointer"
+              />
+            </button>
           </motion.div>
 
           {/* Navigation Links */}

@@ -52,6 +52,11 @@ function FeatureGrid() {
   const handleCardClick = (featureId) => {
     if (featureId === 1) {
       navigate('/vent');
+    } else if (featureId === 2) {
+      // Redirect to external meditation site
+      window.open('https://meditate-web.netlify.app/', '_blank', 'noopener,noreferrer');
+    } else if (featureId === 3) {
+      navigate('/#/community-connect');
     } else {
       // Placeholder for other features
       console.log(`Navigating to ${featureId}`);
