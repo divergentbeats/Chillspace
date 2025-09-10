@@ -56,7 +56,7 @@ function FeatureGrid() {
       // Redirect to external meditation site
       window.open('https://meditate-web.netlify.app/', '_blank', 'noopener,noreferrer');
     } else if (featureId === 3) {
-      navigate('/community-connect');
+      navigate('/#/community-connect');
     } else {
       // Placeholder for other features
       console.log(`Navigating to ${featureId}`);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Target, BookOpen, Heart, Zap, CheckCircle, Plus, Trash2, Bell, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
-import { collection, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query } from 'firebase/firestore';
 
 function ProductivityMode() {
   const { user } = useAuth();
@@ -32,16 +32,26 @@ function ProductivityMode() {
       }
       setLoading(true);
       try {
-        const userTasksRef = doc(db, 'productivityTasks', user.uid);
-        const userTasksSnap = await getDoc(userTasksRef);
-        if (userTasksSnap.exists()) {
-          const data = userTasksSnap.data();
-          setTasks(data.tasks || []);
-          setStreak(data.streak || 0);
+        console.log('Loading tasks for user:', user.uid);
+        const tasksCollectionRef = collection(db, 'users', user.uid, 'productivityMode');
+        const tasksQuery = query(tasksCollectionRef);
+        const querySnapshot = await getDocs(tasksQuery);
+        const loadedTasks = [];
+        querySnapshot.forEach((doc) => {
+          loadedTasks.push({ id: doc.id, ...doc.data() });
+        });
+        setTasks(loadedTasks);
+        console.log('Loaded tasks:', loadedTasks);
+
+        // Load streak
+        const streakRef = doc(db, 'users', user.uid, 'productivityMode', 'streak');
+        const streakSnap = await getDoc(streakRef);
+        if (streakSnap.exists()) {
+          setStreak(streakSnap.data().value || 0);
         } else {
-          setTasks([]);
           setStreak(0);
         }
+        console.log('Loaded streak:', streakSnap.exists() ? streakSnap.data().value : 0);
       } catch (error) {
         console.error('Error loading tasks:', error);
         setTasks([]);
@@ -53,23 +63,7 @@ function ProductivityMode() {
     loadTasks();
   }, [user]);
 
-  // Save tasks to Firebase whenever tasks or streak change
-  useEffect(() => {
-    const saveTasks = async () => {
-      if (!user || loading) return;
-      try {
-        const userTasksRef = doc(db, 'productivityTasks', user.uid);
-        await setDoc(userTasksRef, {
-          tasks: tasks,
-          streak: streak,
-          lastUpdated: new Date()
-        }, { merge: true });
-      } catch (error) {
-        console.error('Error saving tasks:', error);
-      }
-    };
-    saveTasks();
-  }, [tasks, streak, user, loading]);
+
 
   const addTask = async (e) => {
     e.preventDefault();
@@ -80,26 +74,19 @@ function ProductivityMode() {
     if (newTask.trim()) {
       setLoading(true);
       const taskCategory = selectedCategory === 'All' ? 'Work' : selectedCategory;
+      const taskId = Date.now().toString();
       const task = {
-        id: Date.now(),
         text: newTask.trim(),
         completed: false,
         category: taskCategory,
         dueDate: dueDate || null,
       };
       try {
-        const userTasksRef = doc(db, 'productivityTasks', user.uid);
-        const userTasksSnap = await getDoc(userTasksRef);
-        if (userTasksSnap.exists()) {
-          await updateDoc(userTasksRef, {
-            tasks: arrayUnion(task)
-          });
-        } else {
-          await setDoc(userTasksRef, {
-            tasks: [task]
-          });
-        }
-        setTasks(prev => [...prev, task]);
+        console.log('Adding task:', task, 'with ID:', taskId);
+        const taskRef = doc(db, 'users', user.uid, 'productivityMode', taskId);
+        await setDoc(taskRef, task);
+        console.log('Task added to Firestore successfully');
+        setTasks(prev => [...prev, { id: taskId, ...task }]);
         setNewTask('');
         setDueDate('');
       } catch (error) {
@@ -111,19 +98,60 @@ function ProductivityMode() {
     }
   };
 
-  const toggleTask = (taskId) => {
+  const toggleTask = async (taskId) => {
+    console.log('toggleTask called with taskId:', taskId, 'user:', user);
+    const taskToUpdate = tasks.find(task => task.id === taskId);
+    if (!taskToUpdate) return;
+
+    const updatedTask = { ...taskToUpdate, completed: !taskToUpdate.completed };
     const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
+      task.id === taskId ? updatedTask : task
     );
     setTasks(updatedTasks);
 
     // Update streak if all tasks are completed
     const allCompleted = updatedTasks.length > 0 && updatedTasks.every(t => t.completed);
-    if (allCompleted) setStreak(streak + 1);
+    const newStreak = allCompleted ? streak + 1 : streak;
+    if (allCompleted) setStreak(newStreak);
+
+    // Update Firestore
+    if (user) {
+      try {
+        console.log('Updating task in Firestore:', updatedTask);
+        const taskRef = doc(db, 'users', user.uid, 'productivityMode', taskId);
+        await updateDoc(taskRef, { completed: updatedTask.completed });
+        console.log('Task updated in Firestore successfully');
+
+        // Update streak if all completed
+        if (allCompleted) {
+          const streakRef = doc(db, 'users', user.uid, 'productivityMode', 'streak');
+          await setDoc(streakRef, { value: newStreak });
+          console.log('Streak updated in Firestore:', newStreak);
+        }
+      } catch (error) {
+        console.error('Error updating task completion:', error);
+        console.error('Error details:', error.message, error.code);
+      }
+    } else {
+      console.log('No user authenticated, skipping Firestore update');
+    }
   };
 
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+  const deleteTask = async (taskId) => {
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    setTasks(updatedTasks);
+
+    // Update Firestore
+    if (user) {
+      try {
+        console.log('Deleting task from Firestore:', taskId);
+        const taskRef = doc(db, 'users', user.uid, 'productivityMode', taskId);
+        await deleteDoc(taskRef);
+        console.log('Task deleted from Firestore successfully');
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    }
   };
 
   // Notification handler
@@ -313,7 +341,7 @@ function ProductivityMode() {
                     }`}
                   >
                     {/* Category Icon */}
-                    <div className={`p-2 rounded-lg ${getCategoryColor(category.color)}`}>
+                    <div className={`p-2 rounded-lg ${getCategoryColor(category?.color || 'gray')}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     

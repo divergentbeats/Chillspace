@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
 import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -15,6 +15,8 @@ function HabitTracker() {
   const [completedDays, setCompletedDays] = useState({});
   const [currentWeek, setCurrentWeek] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const saveTimeoutRef = useRef(null);
 
   // Generate dates for the current week (7 days)
   const getWeekDates = (weekOffset) => {
@@ -84,10 +86,15 @@ function HabitTracker() {
     loadHabitData();
   }, [user]);
 
-  // Save habits and completed days to Firebase whenever they change
+  // Save habits and completed days to Firebase whenever they change (with debouncing)
   useEffect(() => {
-    const saveHabitData = async () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
       if (!user || loading) return;
+      setSaving(true);
       try {
         const userHabitsRef = doc(db, 'habitTracker', user.uid);
         await setDoc(userHabitsRef, {
@@ -97,12 +104,19 @@ function HabitTracker() {
         }, { merge: true });
       } catch (error) {
         console.error('Error saving habit data:', error);
+      } finally {
+        setSaving(false);
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     };
-    saveHabitData();
   }, [habits, completedDays, user, loading]);
 
-  const addHabit = (e) => {
+  const addHabit = async (e) => {
     e.preventDefault();
     if (newHabit.trim()) {
       const habitIcons = ['💧', '🏃‍♀️', '✍️', '🧘‍♀️', '📚', '🎯', '🌱', '💪'];
@@ -115,13 +129,29 @@ function HabitTracker() {
         color: habitColors[Math.floor(Math.random() * habitColors.length)]
       };
       
-      setHabits([...habits, newHabitObj]);
+      const updatedHabits = [...habits, newHabitObj];
+      setHabits(updatedHabits);
       setNewHabit('');
+
+      // Update Firestore
+      if (user) {
+        try {
+          const userHabitsRef = doc(db, 'habitTracker', user.uid);
+          await setDoc(userHabitsRef, {
+            habits: updatedHabits,
+            completedDays: completedDays,
+            lastUpdated: new Date()
+          }, { merge: true });
+        } catch (error) {
+          console.error('Error adding habit:', error);
+        }
+      }
     }
   };
 
-  const deleteHabit = (habitId) => {
-    setHabits(habits.filter(habit => habit.id !== habitId));
+  const deleteHabit = async (habitId) => {
+    const updatedHabits = habits.filter(habit => habit.id !== habitId);
+    setHabits(updatedHabits);
     // Remove completed days for this habit
     const newCompletedDays = { ...completedDays };
     Object.keys(newCompletedDays).forEach(key => {
@@ -130,14 +160,50 @@ function HabitTracker() {
       }
     });
     setCompletedDays(newCompletedDays);
+
+    // Update Firestore
+    if (user) {
+      try {
+        const userHabitsRef = doc(db, 'habitTracker', user.uid);
+        await setDoc(userHabitsRef, {
+          habits: updatedHabits,
+          completedDays: newCompletedDays,
+          lastUpdated: new Date()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error deleting habit:', error);
+      }
+    }
   };
 
-  const toggleHabitDay = (habitId, dateString) => {
+  const toggleHabitDay = async (habitId, dateString) => {
+    console.log('toggleHabitDay called with habitId:', habitId, 'dateString:', dateString, 'user:', user);
     const key = `${habitId}-${dateString}`;
-    setCompletedDays(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    const updatedCompletedDays = {
+      ...completedDays,
+      [key]: !completedDays[key]
+    };
+    setCompletedDays(updatedCompletedDays);
+
+    // Update Firestore
+    if (user) {
+      try {
+        const userHabitsRef = doc(db, 'habitTracker', user.uid);
+        console.log('Updating Firestore with habits:', habits, 'completedDays:', updatedCompletedDays);
+        console.log('Firestore reference:', userHabitsRef.path);
+        await setDoc(userHabitsRef, {
+          habits: habits,
+          completedDays: updatedCompletedDays,
+          lastUpdated: new Date()
+        }, { merge: true });
+        console.log('Firestore update successful');
+      } catch (error) {
+        console.error('Error toggling habit day:', error);
+        console.error('Error details:', error.message, error.code);
+      }
+    } else {
+      console.log('No user authenticated, skipping Firestore update');
+    }
   };
 
   const getHabitStreak = (habitId) => {
@@ -269,7 +335,8 @@ function HabitTracker() {
               </div>
 
               {/* Days Grid */}
-              <div className="grid grid-cols-7 gap-2">
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-7 gap-2 min-w-max">
                 {/* Day Headers */}
                 {weekDates.map((date, index) => (
                   <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
@@ -304,6 +371,7 @@ function HabitTracker() {
                     </button>
                   );
                 })}
+                </div>
               </div>
             </div>
           ))}
