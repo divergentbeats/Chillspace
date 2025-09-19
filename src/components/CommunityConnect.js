@@ -1,39 +1,61 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../lib/firebase';
+import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Users } from 'lucide-react';
+import { Star, Users, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import communitiesData from '../data/communities.json';
 import {
   fetchDiscordServerDetails,
   extractInviteCode
 } from '../lib/discord';
+import communitiesData from '../data/communities.json';
 
 function CommunityConnect() {
+  const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const [communities, setCommunities] = useState([]);
   const [filteredCommunities, setFilteredCommunities] = useState([]);
+  const [recommendedCommunities, setRecommendedCommunities] = useState([]);
   const [savedCommunities, setSavedCommunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
-  // Removed unused state variables to fix eslint warnings
+  const [userPreferences, setUserPreferences] = useState([]);
 
-  // Load communities from static data and augment with Discord API data
+  // Load communities from Firestore and augment with Discord API data
   useEffect(() => {
     const fetchCommunities = async () => {
       try {
-        // Start with static communities from JSON
-        const staticCommunities = [...communitiesData];
+        // Fetch communities from Firestore
+        const communitiesRef = collection(db, 'communities');
+        const querySnapshot = await getDocs(communitiesRef);
+        let firestoreCommunities = [];
+        querySnapshot.forEach((doc) => {
+          firestoreCommunities.push({ id: doc.id, ...doc.data() });
+        });
+        console.log('Firestore communities:', firestoreCommunities);
 
-        // Extract invite codes from static communities
-        const inviteCodes = staticCommunities
-          .map(community => extractInviteCode(community.link))
+        // If Firestore is empty, use static data as fallback
+        if (firestoreCommunities.length === 0) {
+          firestoreCommunities = communitiesData.map(community => ({
+            ...community,
+            discordLink: community.link // Map 'link' to 'discordLink' for consistency
+          }));
+          console.log('Using static communities data:', firestoreCommunities);
+        }
+
+        // Extract invite codes from Firestore communities
+        const inviteCodes = firestoreCommunities
+          .map(community => extractInviteCode(community.discordLink))
           .filter(code => code !== null);
+        console.log('Extracted invite codes:', inviteCodes);
 
         // Fetch Discord server details for all valid invite codes
         const discordPromises = inviteCodes.map(code => fetchDiscordServerDetails(code));
         const discordResults = await Promise.allSettled(discordPromises);
+        console.log('Discord API results:', discordResults);
 
         // Create a map of invite code to Discord data
         const discordDataMap = {};
@@ -44,36 +66,36 @@ function CommunityConnect() {
           }
         });
 
-        // Merge static data with Discord data
-        const augmentedCommunities = staticCommunities.map(community => {
-          const inviteCode = extractInviteCode(community.link);
+        // Merge Firestore data with Discord data
+        const augmentedCommunities = firestoreCommunities.map(community => {
+          const inviteCode = extractInviteCode(community.discordLink);
           const discordData = inviteCode ? discordDataMap[inviteCode] : null;
 
           return {
             ...community,
-            // Use Discord data if available, otherwise fallback to static data
+            // Use Discord data if available, otherwise fallback to Firestore data
             name: discordData?.name || community.name,
             icon: discordData?.icon || community.icon,
             totalMembers: discordData?.totalMembers || community.memberCount,
             onlineMembers: discordData?.onlineMembers || community.onlineMembers,
-            discordInviteUrl: discordData?.inviteUrl || community.link,
-            // Keep original static data as fallback
+            discordInviteUrl: discordData?.inviteUrl || community.discordLink,
+            // Keep original Firestore data as fallback
             originalName: community.name,
             originalMemberCount: community.memberCount,
             originalOnlineMembers: community.onlineMembers,
-            originalLink: community.link
+            originalLink: community.discordLink
           };
         });
+        console.log('Augmented communities:', augmentedCommunities);
 
         setCommunities(augmentedCommunities);
         setFilteredCommunities(augmentedCommunities);
 
       } catch (error) {
         console.error('Error loading communities:', error);
-
-        // Fallback to static communities
-        setCommunities(communitiesData);
-        setFilteredCommunities(communitiesData);
+        // Fallback to empty array
+        setCommunities([]);
+        setFilteredCommunities([]);
       } finally {
         setLoading(false);
       }
@@ -106,8 +128,13 @@ function CommunityConnect() {
 
     // Filter by selected tags (multiple selection)
     if (selectedTags.length > 0 && !selectedTags.includes('All')) {
+      // Enhanced tag matching: allow partial matches and case-insensitive
       filtered = filtered.filter(community =>
-        selectedTags.some(selectedTag => community.tags.includes(selectedTag))
+        selectedTags.some(selectedTag =>
+          community.tags.some(communityTag =>
+            communityTag.toLowerCase().includes(selectedTag.toLowerCase())
+          )
+        )
       );
     }
 
@@ -403,7 +430,7 @@ function CommunityConnect() {
                 ? 'No communities found matching your criteria.'
                 : activeTab === 'saved'
                 ? 'You haven\'t saved any communities yet.'
-                : 'No communities available at the moment.'}
+                : 'Communities are not available right now. Please try again later.'}
             </p>
           </motion.div>
         ) : (

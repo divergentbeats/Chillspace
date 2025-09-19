@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function Navbar() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleNavigation = (item) => {
     setIsOpen(false); // Close mobile menu on navigation
 
     if (item.isRoute) {
       // Navigate to route
-      window.location.href = `/${item.id}`;
+      navigate(`/${item.id}`);
     } else {
       // Smooth scroll to section
       const element = document.getElementById(item.id);
@@ -52,8 +54,6 @@ function Navbar() {
     }
   };
 
-
-
   const navItems = [
     { id: 'hero', label: 'Home' },
     { id: 'quotes', label: 'Quotes' },
@@ -79,7 +79,7 @@ function Navbar() {
             className="flex-shrink-0 p-1"
           >
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               className="focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:ring-offset-2 rounded-lg"
             >
               <img
@@ -136,7 +136,7 @@ function Navbar() {
                   transition={{ duration: 0.5, delay: navItems.length * 0.1 }}
                   whileHover={{ y: -2 }}
                   onClick={() => {
-                    window.location.href = '/login';
+                    navigate('/login');
                     setIsOpen(false);
                   }}
                   className="relative text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 px-3 py-2 text-sm font-medium transition-colors duration-300"
@@ -150,7 +150,7 @@ function Navbar() {
                   transition={{ duration: 0.5, delay: (navItems.length + 1) * 0.1 }}
                   whileHover={{ y: -2 }}
                   onClick={() => {
-                    window.location.href = '/signup';
+                    navigate('/signup');
                     setIsOpen(false);
                   }}
                   className="relative text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 px-3 py-2 text-sm font-medium transition-colors duration-300"
@@ -227,10 +227,10 @@ function Navbar() {
             </button>
           ) : (
             <>
-              <button onClick={() => { window.location.href = '/login'; setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
+              <button onClick={() => { navigate('/login'); setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
                 Login
               </button>
-              <button onClick={() => { window.location.href = '/signup'; setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
+              <button onClick={() => { navigate('/signup'); setIsOpen(false); }} className="block w-full text-left text-pastel-blue-600 hover:text-pastel-blue-700 dark:text-pastel-blue-400 dark:hover:text-pastel-blue-300 hover:bg-pastel-neutral-100 dark:hover:bg-pastel-neutral-800 px-3 py-2 rounded-md text-base font-medium transition-colors">
                 Sign Up
               </button>
             </>

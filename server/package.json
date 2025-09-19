@@ -1,0 +1,21 @@
+{
+  "name": "chillspace-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Chillspace mood analysis using Gemini CLI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "dev:server": "nodemon index.js",
+    "test:gemini": "node lib/geminiCliWrapper.test.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^11.10.1",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
