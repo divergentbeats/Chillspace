@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
   signInWithPopup,
+  getIdToken,
 } from 'firebase/auth';
 
 const AuthContext = createContext();
@@ -91,6 +92,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getIdToken = async () => {
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken();
+    }
+    throw new Error('No user logged in');
+  };
+
   const value = {
     user,
     isLoading,
@@ -98,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     logout,
     signInWithGoogle,
+    getIdToken,
     isAuthenticated: !!user,
   };
 

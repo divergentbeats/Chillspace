@@ -56,7 +56,11 @@ function FeatureGrid() {
       // Redirect to external meditation site
       window.open('https://meditate-web.netlify.app/', '_blank', 'noopener,noreferrer');
     } else if (featureId === 3) {
-      navigate('/#/community-connect');
+      navigate('/community-connect');
+    } else if (featureId === 5) {
+      navigate('/mood-analyzer');
+    } else if (featureId === 6) {
+      navigate('/track-your-progress');
     } else {
       // Placeholder for other features
       console.log(`Navigating to ${featureId}`);
@@ -64,7 +68,7 @@ function FeatureGrid() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+    <div id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 font-sans">
           Explore Our Features

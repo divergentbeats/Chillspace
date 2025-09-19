@@ -1,7 +1,9 @@
+
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration (hardcoded as provided)
 const firebaseConfig = {
@@ -23,5 +25,6 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 const db = getFirestore(app);
+const functions = getFunctions(app);
 
-export { auth, googleProvider, analytics, db };
+export { auth, googleProvider, analytics, db, functions };

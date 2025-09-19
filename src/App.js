@@ -17,6 +17,8 @@ import Signup from './components/Signup';
 import Preferences from './components/Preferences';
 import VentingVenue from './components/VentingVenue';
 import CommunityConnect from './components/CommunityConnect';
+import MoodAnalyzer from './components/MoodAnalyzer';
+import TrackYourProgress from './components/TrackYourProgress';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -217,6 +219,19 @@ function AnimatedRoutes() {
           }
         />
         <Route
+          path="/mood-analyzer"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <MoodAnalyzer />
+            </motion.div>
+          }
+        />
+        <Route
           path="/*"
           element={
             <motion.div
@@ -226,6 +241,19 @@ function AnimatedRoutes() {
               transition={{ duration: 0.3 }}
             >
               <AppContent />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/track-your-progress"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <TrackYourProgress />
             </motion.div>
           }
         />

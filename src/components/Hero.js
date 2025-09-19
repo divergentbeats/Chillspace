@@ -9,6 +9,42 @@ function Hero() {
     }
   };
 
+  const scrollToFeatures = () => {
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      const navbarHeight = 64; // Height of the navbar (h-16 = 4rem = 64px)
+      const elementPosition = featuresSection.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navbarHeight;
+
+      // Use requestAnimationFrame for smoother scrolling
+      const scrollTo = (targetY) => {
+        const startY = window.pageYOffset;
+        const distance = targetY - startY;
+        const duration = 800; // ms
+        let startTime = null;
+
+        const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+        const animation = (currentTime) => {
+          if (startTime === null) startTime = currentTime;
+          const timeElapsed = currentTime - startTime;
+          const progress = Math.min(timeElapsed / duration, 1);
+          const easeProgress = easeInOutQuad(progress);
+
+          window.scrollTo(0, startY + distance * easeProgress);
+
+          if (progress < 1) {
+            requestAnimationFrame(animation);
+          }
+        };
+
+        requestAnimationFrame(animation);
+      };
+
+      scrollTo(offsetPosition);
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -132,6 +168,7 @@ function Hero() {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
+              onClick={scrollToFeatures}
               className="border-2 border-pastel-blue-500 dark:border-pastel-blue-400 text-pastel-blue-600 dark:text-pastel-blue-400 hover:bg-pastel-blue-500 hover:text-white font-semibold py-5 px-10 rounded-2xl text-xl transition-all duration-300 transform shadow-soft hover:shadow-glow"
             >
               Start Your Journey
