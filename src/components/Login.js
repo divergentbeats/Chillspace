@@ -168,7 +168,7 @@ function Login() {
   const handleGoogleSignIn = async () => {
     const result = await signInWithGoogle();
     if (result.success) {
-      navigate('/preferences');
+      navigate('/index');
     } else {
       setErrors({ general: 'Failed to sign in with Google. Please try again.' });
     }
@@ -176,7 +176,7 @@ function Login() {
 
   const handleGuestLogin = () => {
     // For guest, just navigate to preferences without authentication
-    navigate('/preferences');
+    navigate('/index');
   };
 
   return (

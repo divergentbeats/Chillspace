@@ -14,11 +14,13 @@ import ComingSoon from './components/ComingSoon';
 import Footer from './components/Footer';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import Preferences from './components/Preferences';
+/* import Preferences from './components/Preferences'; */
 import VentingVenue from './components/VentingVenue';
 import CommunityConnect from './components/CommunityConnect';
 import MoodAnalyzer from './components/MoodAnalyzer';
+/* import Chatbot from './components/Chatbot'; */
 import TrackYourProgress from './components/TrackYourProgress';
+import SessionPage from './components/SessionPage';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -142,6 +144,7 @@ function AppContent() {
       <div id="coming-soon">
         <ComingSoon />
       </div>
+      {/* <Chatbot /> */}
       <Footer />
     </div>
   );
@@ -188,7 +191,7 @@ function AnimatedRoutes() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <Preferences />
+              {/* <Preferences /> */}
             </motion.div>
           }
         />
@@ -241,6 +244,19 @@ function AnimatedRoutes() {
               transition={{ duration: 0.3 }}
             >
               <AppContent />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/session"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SessionPage />
             </motion.div>
           }
         />
