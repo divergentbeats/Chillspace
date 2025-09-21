@@ -1,38 +1,26 @@
 {
-  "name": "chillspace",
-  "version": "0.1.0",
+  "name": "react-chillspace-app",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.11.0",
-    "discord.js": "^14.22.1",
-    "firebase": "^12.2.1",
-    "framer-motion": "^12.23.12",
-    "lucide-react": "^0.542.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.8.2",
-    "react-scripts": "5.0.1",
-    "react-scroll": "^1.9.3",
-    "react-tsparticles": "^2.12.2",
-    "recharts": "^3.2.1",
-    "tsparticles": "^2.9.3",
-    "web-vitals": "^2.1.4"
+    "react-router-dom": "^6.14.1",
+    "framer-motion": "^10.12.16",
+    "recharts": "^2.6.2",
+    "react-icons": "^4.10.1",
+    "node-fetch": "^3.3.2",
+    "netlify-cli": "^15.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "netlify": "netlify dev"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "devDependencies": {
+    "react-scripts": "5.0.1"
   },
   "browserslist": {
     "production": [
@@ -45,10 +33,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24",
-    "tailwindcss": "^3.3.2"
   }
 }
