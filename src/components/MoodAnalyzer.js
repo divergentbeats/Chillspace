@@ -1,716 +1,720 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/firebase';
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { motion } from 'framer-motion';
-import { Mic, MicOff } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { useNavigate } from 'react-router-dom';
 
-const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-
-let genAI;
-let model;
-
-if (!apiKey) {
-  genAI = null;
-  model = null;
-} else {
-  genAI = new GoogleGenerativeAI(apiKey);
-  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-}
-
-function MoodAnalyzer() {
-  const { user } = useAuth();
-  const [text, setText] = useState('');
-  const [quizAnswers, setQuizAnswers] = useState({
-    stress: '',
-    calmness: '',
-    energy: '',
-    sleep: ''
-  });
-  const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Voice states
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcribedText, setTranscribedText] = useState('');
-  const [voiceResult, setVoiceResult] = useState(null);
-  const recognitionRef = useRef(null);
-
-  // Quiz states
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [moodQuizAnswers, setMoodQuizAnswers] = useState({});
-  const [quizResult, setQuizResult] = useState(null);
-  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
-
-  const questions = [
-    {
-      id: 'stress',
-      question: 'How stressed do you feel today?',
-      options: ['Not at all', 'A little', 'Moderately', 'Very']
-    },
-    {
-      id: 'calmness',
-      question: 'How calm do you feel today?',
-      options: ['Not at all', 'A little', 'Moderately', 'Very']
-    },
-    {
-      id: 'energy',
-      question: 'How is your energy level?',
-      options: ['Low', 'Moderate', 'High', 'Very high']
-    },
-    {
-      id: 'sleep',
-      question: 'How well did you sleep last night?',
-      options: ['Poorly', 'Fair', 'Good', 'Excellent']
+// Helper function to convert Base64 to ArrayBuffer
+const base64ToArrayBuffer = (base64) => {
+    const binary_string = window.atob(base64);
+    const len = binary_string.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
     }
-  ];
+    return bytes.buffer;
+};
 
-  const moodQuizQuestions = [
-    {
-      id: 'feeling',
-      question: 'How are you feeling right now?',
-      options: ['Very happy 😊', 'Happy 😄', 'Neutral 😐', 'Sad 😢', 'Very sad 😭']
-    },
-    {
-      id: 'motivation',
-      question: 'Do you feel motivated to do tasks today?',
-      options: ['Very motivated 🚀', 'Somewhat motivated', 'Neutral', 'Not very motivated', 'Not motivated at all 😴']
-    },
-    {
-      id: 'anxiety',
-      question: 'Are you anxious about something specific?',
-      options: ['Not at all 😌', 'A little', 'Moderately', 'Very anxious 😰', 'Extremely anxious 😱']
-    },
-    {
-      id: 'energy',
-      question: 'How is your energy level?',
-      options: ['Very energetic ⚡', 'Energetic', 'Neutral', 'Low energy', 'Very low energy 😴']
-    },
-    {
-      id: 'outlook',
-      question: 'What is your outlook on the day ahead?',
-      options: ['Very positive 🌟', 'Positive', 'Neutral', 'Negative', 'Very negative ☁️']
-    }
-  ];
+// Helper function to convert PCM audio to WAV format
+const pcmToWav = (pcm16, sampleRate) => {
+    const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+    const view = new DataView(buffer);
+    let offset = 0;
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchHistory = async () => {
-      try {
-        // Adjusted to use 'moodLogs' collection as per Firestore rules
-        const moodEntriesRef = collection(db, 'users', user.uid, 'moodLogs');
-        const q = query(moodEntriesRef, orderBy('timestamp', 'desc'), limit(5));
-        const querySnapshot = await getDocs(q);
-        const entries = [];
-        querySnapshot.forEach(doc => {
-          entries.push({ id: doc.id, ...doc.data() });
-        });
-        setHistory(entries);
-      } catch (err) {
-        console.error('Error fetching mood history:', err);
-      }
-    };
-    fetchHistory();
-  }, [user]);
-
-  // Setup Speech Recognition
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'en-US';
-
-      recognitionRef.current.onresult = (event) => {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
+    function writeString(str) {
+        for (let i = 0; i < str.length; i++) {
+            view.setUint8(offset++, str.charCodeAt(i));
         }
-        if (finalTranscript) {
-          setTranscribedText(finalTranscript);
+    }
+
+    function writeUint32(val) {
+        view.setUint32(offset, val, true);
+        offset += 4;
+    }
+
+    function writeUint16(val) {
+        view.setUint16(offset, val, true);
+        offset += 2;
+    }
+
+    // RIFF chunk descriptor
+    writeString('RIFF');
+    writeUint32(36 + pcm16.length * 2);
+    writeString('WAVE');
+
+    // fmt chunk
+    writeString('fmt ');
+    writeUint32(16);
+    writeUint16(1); // Audio format (1 = PCM)
+    writeUint16(1); // Number of channels
+    writeUint32(sampleRate); // Sample rate
+    writeUint32(sampleRate * 2); // Byte rate
+    writeUint16(2); // Block align
+    writeUint16(16); // Bits per sample
+
+    // data chunk
+    writeString('data');
+    writeUint32(pcm16.length * 2);
+    for (let i = 0; i < pcm16.length; i++) {
+        view.setInt16(offset, pcm16[i], true);
+        offset += 2;
+    }
+
+    return new Blob([buffer], { type: 'audio/wav' });
+};
+
+const translations = {
+    'en-US': {
+        tagline: "Your space to be heard. Write down your thoughts and we'll help you understand your mood.",
+        rantLabel: "What's on your mind?",
+        rantPlaceholder: "Start writing here...",
+        analyzeBtn: "Analyze My Mood",
+        generateQuizBtn: "Generate 5 Questions",
+        quizTitle: "Answer these questions...",
+        resultsTitle: "Analysis Results",
+        stressLevelLabel: "Stress Level:",
+        summaryLabel: "Summary:",
+        emotionsTitle: "Key Emotions",
+        dialogueTitle: "A Thoughtful Response",
+        listenBtn: "Listen ✨",
+        suggestionsTitle: "Helpful Suggestions:",
+        affirmationTitle: "Daily Affirmation",
+        generateAffirmationBtn: "Generate Affirmation ✨",
+        loadingText: "Analyzing your thoughts...",
+        errorText: "An error occurred. Please try again."
+    },
+    'es-ES': {
+        tagline: "Tu espacio para ser escuchado. Escribe tus pensamientos y te ayudaremos a entender tu estado de ánimo.",
+        rantLabel: "¿Qué tienes en mente?",
+        rantPlaceholder: "Empieza a escribir aquí...",
+        analyzeBtn: "Analizar Mi Estado de Ánimo",
+        generateQuizBtn: "Generar 5 Preguntas",
+        quizTitle: "Responde estas preguntas...",
+        resultsTitle: "Resultados del Análisis",
+        stressLevelLabel: "Nivel de Estrés:",
+        summaryLabel: "Resumen:",
+        emotionsTitle: "Emociones Clave",
+        dialogueTitle: "Una Respuesta Reflexiva",
+        listenBtn: "Escuchar ✨",
+        suggestionsTitle: "Sugerencias Útiles:",
+        affirmationTitle: "Afirmación Diaria",
+        generateAffirmationBtn: "Generar Afirmación ✨",
+        loadingText: "Analizando tus pensamientos...",
+        errorText: "Ha ocurrido un error. Por favor, inténtalo de nuevo."
+    },
+    'fr-FR': {
+        tagline: "Votre espace pour être entendu. Écrivez vos pensées et nous vous aiderons à comprendre votre humeur.",
+        rantLabel: "Qu'est-ce qui vous préoccupe?",
+        rantPlaceholder: "Commencez à écrire ici...",
+        analyzeBtn: "Analyser Mon Humeur",
+        generateQuizBtn: "Générer 5 Questions",
+        quizTitle: "Répondez à ces questions...",
+        resultsTitle: "Résultats de l'Analyse",
+        stressLevelLabel: "Niveau de Stress:",
+        summaryLabel: "Résumé:",
+        emotionsTitle: "Émotions Clés",
+        dialogueTitle: "Une Réponse Réfléchie",
+        listenBtn: "Écouter ✨",
+        suggestionsTitle: "Suggestions Utiles:",
+        affirmationTitle: "Affirmation Quotidienne",
+        generateAffirmationBtn: "Générer une Affirmation ✨",
+        loadingText: "Analyse de vos pensées...",
+        errorText: "Une erreur est survenue. Veuillez réessayer."
+    },
+    'de-DE': {
+        tagline: "Dein Raum, um gehört zu werden. Schreib deine Gedanken auf und wir helfen dir, deine Stimmung zu verstehen.",
+        rantLabel: "Was beschäftigt dich?",
+        rantPlaceholder: "Schreib hier los...",
+        analyzeBtn: "Stimmung Analysieren",
+        generateQuizBtn: "5 Fragen Generieren",
+        quizTitle: "Beantworte diese Fragen...",
+        resultsTitle: "Analyse-Ergebnisse",
+        stressLevelLabel: "Stress-Level:",
+        summaryLabel: "Zusammenfassung:",
+        emotionsTitle: "Schlüssel-Emotionen",
+        dialogueTitle: "Eine Nachdenkliche Antwort",
+        listenBtn: "Anhören ✨",
+        suggestionsTitle: "Hilfreiche Vorschläge:",
+        affirmationTitle: "Tägliche Affirmation",
+        generateAffirmationBtn: "Affirmation Generieren ✨",
+        loadingText: "Deine Gedanken werden analysiert...",
+        errorText: "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
+    },
+    'ja-JP': {
+        tagline: "あなたの声を聞くための場所。考えを書き留めて、気分を理解するお手伝いをします。",
+        rantLabel: "何を考えていますか？",
+        rantPlaceholder: "ここに書き始めてください...",
+        analyzeBtn: "気分を分析する",
+        generateQuizBtn: "5つの質問を生成する",
+        quizTitle: "これらの質問に答えてください...",
+        resultsTitle: "分析結果",
+        stressLevelLabel: "ストレスレベル:",
+        summaryLabel: "要約:",
+        emotionsTitle: "主要な感情",
+        dialogueTitle: "思慮深い応答",
+        listenBtn: "聴く ✨",
+        suggestionsTitle: "役立つ提案:",
+        affirmationTitle: "毎日のアファメーション",
+        generateAffirmationBtn: "アファメーションを生成する ✨",
+        loadingText: "あなたの思考を分析中...",
+        errorText: "エラーが発生しました。もう一度お試しください。"
+    },
+    'zh-CN': {
+        tagline: "一个倾听你的空间。写下你的想法，我们将帮助你了解你的心情。",
+        rantLabel: "你在想什么？",
+        rantPlaceholder: "从这里开始写...",
+        analyzeBtn: "分析我的心情",
+        generateQuizBtn: "生成5个问题",
+        quizTitle: "回答这些问题...",
+        resultsTitle: "分析结果",
+        stressLevelLabel: "压力水平：",
+        summaryLabel: "总结：",
+        emotionsTitle: "关键情绪",
+        dialogueTitle: "一个深思熟虑的回应",
+        listenBtn: "听一听 ✨",
+        suggestionsTitle: "有用的建议：",
+        affirmationTitle: "每日肯定",
+        generateAffirmationBtn: "生成肯定语 ✨",
+        loadingText: "正在分析你的想法...",
+        errorText: "发生了一个错误。请重试。"
+    },
+    'hi-IN': {
+        tagline: "अपनी बात कहने का आपका स्थान। अपने विचार लिखें और हम आपके मूड को समझने में आपकी मदद करेंगे।",
+        rantLabel: "आपके मन में क्या है?",
+        rantPlaceholder: "यहाँ लिखना शुरू करें...",
+        analyzeBtn: "मेरा मूड विश्लेषण करें",
+        generateQuizBtn: "5 प्रश्न जनरेट करें",
+        quizTitle: "इन प्रश्नों का उत्तर दें...",
+        resultsTitle: "विश्लेषण के परिणाम",
+        stressLevelLabel: "तनाव का स्तर:",
+        summaryLabel: "सारांश:",
+        emotionsTitle: "मुख्य भावनाएँ",
+        dialogueTitle: "एक विचारशील प्रतिक्रिया",
+        listenBtn: "सुनें ✨",
+        suggestionsTitle: "मददगार सुझाव:",
+        affirmationTitle: "रोज़ाना की पुष्टि",
+        generateAffirmationBtn: "पुष्टि जनरेट करें ✨",
+        loadingText: "आपके विचारों का विश्लेषण हो रहा है...",
+        errorText: "एक त्रुटि हुई। कृपया फिर से प्रयास करें।"
+    },
+    'kn-IN': {
+        tagline: "ನಿಮ್ಮ ಮಾತುಗಳಿಗೆ ಜಾಗ. ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ಬರೆಯಿರಿ ಮತ್ತು ನಿಮ್ಮ ಮನಸ್ಥಿತಿಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ನಾವು ನಿಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತೇವೆ.",
+        rantLabel: "ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಏನಿದೆ?",
+        rantPlaceholder: "ಇಲ್ಲಿ ಬರೆಯಲು ಪ್ರಾರಂಭಿಸಿ...",
+        analyzeBtn: "ನನ್ನ ಮನಸ್ಥಿತಿಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ",
+        generateQuizBtn: "5 ಪ್ರಶ್ನೆಗಳನ್ನು ರಚಿಸಿ",
+        quizTitle: "ಈ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ...",
+        resultsTitle: "ವಿಶ್ಲೇಷಣೆಯ ಫಲಿತಾಂಶಗಳು",
+        stressLevelLabel: "ಒತ್ತಡದ ಮಟ್ಟ:",
+        summaryLabel: "ಸಾರಾಂಶ:",
+        emotionsTitle: "ಪ್ರಮುಖ ಭಾವನೆಗಳು",
+        dialogueTitle: "ಒಂದು ಚಿಂತನಶೀಲ ಪ್ರತಿಕ್ರಿಯೆ",
+        listenBtn: "ಕೇಳಿ ✨",
+        suggestionsTitle: "ಸಹಾಯಕಾರಿ ಸಲಹೆಗಳು:",
+        affirmationTitle: "ದೈನಂದಿನ ದೃಢೀಕರಣ",
+        generateAffirmationBtn: "ದೃಢೀಕರಣವನ್ನು ರಚಿಸಿ ✨",
+        loadingText: "ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+        errorText: "ಒಂದು ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    },
+    'mr-IN': {
+        tagline: "तुमच्या बोलण्यासाठीची जागा. तुमचे विचार लिहा आणि आम्ही तुम्हाला तुमच्या मन:स्थितीला समजून घेण्यास मदत करू.",
+        rantLabel: "तुमच्या मनात काय आहे?",
+        rantPlaceholder: "इथे लिहायला सुरुवात करा...",
+        analyzeBtn: "माझी मन:स्थिती विश्लेषित करा",
+        generateQuizBtn: "5 प्रश्न तयार करा",
+        quizTitle: "या प्रश्नांची उत्तरे द्या...",
+        resultsTitle: "विश्लेषण परिणाम",
+        stressLevelLabel: "तणाव पातळी:",
+        summaryLabel: "सारांश:",
+        emotionsTitle: "मुख्य भावना",
+        dialogueTitle: "एक विचारशील प्रतिसाद",
+        listenBtn: "ऐका ✨",
+        suggestionsTitle: "मदतशीर सूचना:",
+        affirmationTitle: "दररोजची सकारात्मकता",
+        generateAffirmationBtn: "सकारात्मकता तयार करा ✨",
+        loadingText: "तुमच्या विचारांचे विश्लेषण करत आहोत...",
+        errorText: "एक त्रुटी आली. कृपया पुन्हा प्रयत्न करा."
+    },
+    'ta-IN': {
+        tagline: "உங்கள் குரல் கேட்கும் இடம். உங்கள் எண்ணங்களை எழுதுங்கள், உங்கள் மனநிலையைப் புரிந்துகொள்ள நாங்கள் உதவுவோம்.",
+        rantLabel: "உங்கள் மனதில் என்ன இருக்கிறது?",
+        rantPlaceholder: "இங்கே எழுதத் தொடங்குங்கள்...",
+        analyzeBtn: "என் மனநிலையை பகுப்பாய்வு செய்",
+        generateQuizBtn: "5 கேள்விகளை உருவாக்கு",
+        quizTitle: "இந்தக் கேள்விகளுக்குப் பதிலளி...",
+        resultsTitle: "பகுப்பாய்வு முடிவுகள்",
+        stressLevelLabel: "மன அழுத்த நிலை:",
+        summaryLabel: "சுருக்கம்:",
+        emotionsTitle: "முக்கிய உணர்வுகள்",
+        dialogueTitle: "ஒரு சிந்தனைமிக்க பதில்",
+        listenBtn: "கேள் ✨",
+        suggestionsTitle: "உதவிகரமான ஆலோசனைகள்:",
+        affirmationTitle: "தினசரி உறுதிமொழி",
+        generateAffirmationBtn: "உறுதிமொழியை உருவாக்கு ✨",
+        loadingText: "உங்கள் எண்ணங்களை பகுப்பாய்வு செய்கிறோம்...",
+        errorText: "ஒரு பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்."
+    },
+    'te-IN': {
+        tagline: "మీ మాటలు వినే స్థలం. మీ ఆలోచనలను వ్రాసి, మీ మూడ్‌ను అర్థం చేసుకోవడంలో మేము మీకు సహాయం చేస్తాము.",
+        rantLabel: "మీ మనసులో ఏముంది?",
+        rantPlaceholder: "ఇక్కడ రాయడం ప్రారంభించండి...",
+        analyzeBtn: "నా మూడ్‌ను విశ్లేషించండి",
+        generateQuizBtn: "5 ప్రశ్నలను సృష్టించండి",
+        quizTitle: "ఈ ప్రశ్నలకు సమాధానం ఇవ్వండి...",
+        resultsTitle: "విశ్లేషణ ఫలితాలు",
+        stressLevelLabel: "ఒత్తిడి స్థాయి:",
+        summaryLabel: "సారాంశం:",
+        emotionsTitle: "ప్రధాన భావోద్వేగాలు",
+        dialogueTitle: "ఒక ఆలోచనాత్మక ప్రతిస్పందన",
+        listenBtn: "విను ✨",
+        suggestionsTitle: "సహాయకరమైన సూచనలు:",
+        affirmationTitle: "రోజువారీ ధృవీకరణ",
+        generateAffirmationBtn: "ధృవీకరణను సృష్టించండి ✨",
+        loadingText: "మీ ఆలోచనలను విశ్లేషిస్తున్నాము...",
+        errorText: "ఒక లోపం సంభవించింది. దయచేసి మళ్లీ ప్రయత్నించండి."
+    },
+    'ml-IN': {
+        tagline: "നിങ്ങളുടെ ചിന്തകൾ പങ്കുവെക്കാനുള്ള ഇടം. നിങ്ങളുടെ ചിന്തകൾ എഴുതുക, നിങ്ങളുടെ മാനസികാവസ്ഥ മനസ്സിലാക്കാൻ ഞങ്ങൾ സഹായിക്കും.",
+        rantLabel: "നിങ്ങളുടെ മനസ്സിൽ എന്താണ്?",
+        rantPlaceholder: "ഇവിടെ എഴുതാൻ തുടങ്ങുക...",
+        analyzeBtn: "എന്റെ മാനസികാവസ്ഥ വിശകലനം ചെയ്യുക",
+        generateQuizBtn: "5 ചോദ്യങ്ങൾ സൃഷ്ടിക്കുക",
+        quizTitle: "ഈ ചോദ്യങ്ങൾക്ക് ഉത്തരം നൽകുക...",
+        resultsTitle: "വിശകലന ഫലങ്ങൾ",
+        stressLevelLabel: "സമ്മർദ്ദ നില:",
+        summaryLabel: "സംഗ്രഹം:",
+        emotionsTitle: "പ്രധാന വികാരങ്ങൾ",
+        dialogueTitle: "ഒരു വിവേകപൂർണ്ണമായ പ്രതികരണം",
+        listenBtn: "കേൾക്കൂ ✨",
+        suggestionsTitle: "സഹായകരമായ നിർദ്ദേശങ്ങൾ:",
+        affirmationTitle: "ദൈനംദിന സ്ഥിരീകരണം",
+        generateAffirmationBtn: "സ്ഥിരീകരണം സൃഷ്ടിക്കുക ✨",
+        loadingText: "നിങ്ങളുടെ ചിന്തകൾ വിശകലനം ചെയ്യുന്നു...",
+        errorText: "ഒരു പിശക് സംഭവിച്ചു. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+    }
+};
+
+const ttsVoiceMap = {
+    'en-US': "Kore",
+    'es-ES': "Kore",
+    'fr-FR': "Kore",
+    'de-DE': "Kore",
+    'ja-JP': "Kore",
+    'zh-CN': "Kore",
+    'hi-IN': "Kore",
+    'kn-IN': "Kore",
+    'mr-IN': "Kore",
+    'ta-IN': "Kore",
+    'te-IN': "Kore",
+    'ml-IN': "Kore",
+};
+
+const languageNames = {
+    'en-US': 'English (US)',
+    'es-ES': 'Spanish',
+    'fr-FR': 'French',
+    'de-DE': 'German',
+    'ja-JP': 'Japanese',
+    'zh-CN': 'Chinese (Simplified)',
+    'hi-IN': 'Hindi',
+    'kn-IN': 'Kannada',
+    'mr-IN': 'Marathi',
+    'ta-IN': 'Tamil',
+    'te-IN': 'Telugu',
+    'ml-IN': 'Malayalam'
+};
+
+const AnalyzeYourMood = () => {
+    const navigate = useNavigate();
+    const [language, setLanguage] = useState('en-US');
+    const [translationsCurrent, setTranslationsCurrent] = useState(translations['en-US']);
+    const [rant, setRant] = useState('');
+    const [quizQuestions, setQuizQuestions] = useState([]);
+    const [quizAnswers, setQuizAnswers] = useState({});
+    const [results, setResults] = useState(null);
+    const [affirmation, setAffirmation] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const audioRef = useRef(null);
+    const [showQuiz, setShowQuiz] = useState(false);
+
+    // Update translations when language changes
+    useEffect(() => {
+        if (translations[language]) {
+            setTranslationsCurrent(translations[language]);
         }
-      };
+    }, [language]);
 
-      recognitionRef.current.onend = () => {
-        setIsRecording(false);
-      };
-
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsRecording(false);
-        setError('Speech recognition failed. Please try again.');
-      };
-    } else {
-      console.warn('Speech Recognition not supported in this browser.');
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+    // Handle language change
+    const handleLanguageChange = (e) => {
+        setLanguage(e.target.value);
+        setShowQuiz(false);
+        setRant('');
+        setResults(null);
     };
-  }, []);
 
-  const handleInputChange = (e) => {
-    setText(e.target.value);
-  };
+    // Analyze Mood API call
+    const analyzeMood = async () => {
+        let userText = '';
+        if (!showQuiz) {
+            userText = rant.trim();
+        } else {
+            userText = quizQuestions.map((q) => {
+                const answer = quizAnswers[q.id] || '';
+                return `Question: ${q.question}\nAnswer: ${answer}\n\n`;
+            }).join('');
+        }
+        
+        if (!userText) {
+             setError(translationsCurrent.errorText);
+             return;
+        };
 
-  const handleQuizChange = (id, value) => {
-    setQuizAnswers(prev => ({ ...prev, [id]: value }));
-  };
+        setLoading(true);
+        setError(null);
+        setResults(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!apiKey) {
-      setError('Gemini API key not configured. Please set it in your .env file.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const result = await model.generateContent([
-        `Analyze the user's mood based on this text: "${text}". Provide a mood assessment with a mood label (e.g., Happy, Sad, Anxious, Calm), confidence score (0-1), and emotion scores as a JSON object with keys like happiness, anxiety, calm, energy, motivation. Return in JSON format: {"mood": "string", "confidence": 0.85, "emotions": {"happiness": 70, "anxiety": 20, "calm": 80, "energy": 60, "motivation": 50}}`
-      ]);
-      const response = await result.response;
-      const textResponse = response.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(textResponse);
-      } catch {
-        parsed = { mood: 'Neutral', confidence: 0.5, emotions: {} };
-      }
-      setResult(parsed);
+        // Call the proxy endpoint instead of the direct Gemini URL
+        const proxyUrl = '/.netlify/functions/gemini-proxy';
 
-      // Save to Firestore
-      if (user) {
-        await addDoc(collection(db, 'users', user.uid, 'moodLogs'), {
-          mood: parsed.mood,
-          confidence: parsed.confidence,
-          emotions: parsed.emotions,
-          text: text,
-          timestamp: serverTimestamp(),
-        });
-      }
+        const payload = {
+            action: 'analyzeMood',
+            input: userText,
+            language: language,
+        };
 
-      // Refresh history
-      const moodLogsRef = collection(db, 'users', user.uid, 'moodLogs');
-      const q = query(moodLogsRef, orderBy('timestamp', 'desc'), limit(5));
-      const querySnapshot = await getDocs(q);
-      const entries = [];
-      querySnapshot.forEach(doc => {
-        entries.push({ id: doc.id, ...doc.data() });
-      });
-      setHistory(entries);
-    } catch (err) {
-      setError('Failed to analyze mood. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+            setResults(parsedData);
+        } catch (e) {
+            console.error('API Error:', e);
+            setError(translationsCurrent.errorText);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // Voice recording handlers
-  const startRecording = () => {
-    if (recognitionRef.current) {
-      setIsRecording(true);
-      setTranscribedText('');
-      setVoiceResult(null);
-      setError(null);
-      recognitionRef.current.start();
-    } else {
-      setError('Speech Recognition not supported in this browser.');
-    }
-  };
+    // Generate Affirmation API call
+    const generateAffirmation = async () => {
+        const userText = !showQuiz ? rant.trim() : quizQuestions.map((q) => {
+            const answer = quizAnswers[q.id] || '';
+            return `Question: ${q.question}\nAnswer: ${answer}\n\n`;
+        }).join('');
 
-  const stopRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-    }
-  };
+        setLoading(true);
+        setError(null);
 
-  const analyzeVoiceText = async (voiceText) => {
-    if (!apiKey) {
-      setError('Gemini API key not configured. Please set it in your .env file.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setVoiceResult(null);
-    try {
-      const result = await model.generateContent([
-        `Analyze the user's mood based on this voice-transcribed text: "${voiceText}". Provide a mood assessment with a mood label (e.g., Happy, Sad, Anxious, Calm), confidence score (0-1), and emotion scores as a JSON object with keys like happiness, anxiety, calm, energy, motivation. Return in JSON format: {"mood": "string", "confidence": 0.85, "emotions": {"happiness": 70, "anxiety": 20, "calm": 80, "energy": 60, "motivation": 50}}`
-      ]);
-      const response = await result.response;
-      const textResponse = response.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(textResponse);
-      } catch {
-        parsed = { mood: 'Neutral', confidence: 0.5, emotions: {} };
-      }
-      setVoiceResult(parsed);
+        // Call the proxy endpoint instead of the direct Gemini URL
+        const proxyUrl = '/.netlify/functions/gemini-proxy';
 
-      // Save to Firestore
-      if (user) {
-        await addDoc(collection(db, 'users', user.uid, 'moodLogs'), {
-          mood: parsed.mood,
-          confidence: parsed.confidence,
-          emotions: parsed.emotions,
-          text: voiceText,
-          timestamp: serverTimestamp(),
-        });
-      }
+        const payload = {
+            action: 'generateAffirmation',
+            input: userText,
+            language: language,
+        };
 
-      // Refresh history
-      const moodLogsRef = collection(db, 'users', user.uid, 'moodLogs');
-      const q = query(moodLogsRef, orderBy('timestamp', 'desc'), limit(5));
-      const querySnapshot = await getDocs(q);
-      const entries = [];
-      querySnapshot.forEach(doc => {
-        entries.push({ id: doc.id, ...doc.data() });
-      });
-      setHistory(entries);
-    } catch (err) {
-      setError('Failed to analyze mood from voice. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            setAffirmation(result.candidates[0].content.parts[0].text);
+        } catch (e) {
+            console.error('Affirmation API Error:', e);
+            setAffirmation('Failed to generate affirmation.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // Effect to analyze transcribed text when it changes
-  useEffect(() => {
-    if (transcribedText) {
-      analyzeVoiceText(transcribedText);
-    }
-  }, [transcribedText, analyzeVoiceText]);
+    // Play Dialogue TTS API call
+    const playDialogue = async () => {
+        if (!results || !results.helpfulDialogue) return;
 
-  // Quiz handlers
-  const handleMoodQuizAnswer = (questionId, answer) => {
-    setMoodQuizAnswers(prev => ({ ...prev, [questionId]: answer }));
-    if (currentQuestionIndex < moodQuizQuestions.length - 1) {
-      setTimeout(() => {
-        setCurrentQuestionIndex(prev => prev + 1);
-      }, 500); // Delay for smooth transition
-    } else {
-      // Calculate result
-      calculateQuizResult();
-    }
-  };
+        setLoading(true);
+        setError(null);
 
-  const calculateQuizResult = async () => {
-    if (!apiKey) {
-      setError('Gemini API key not configured. Please set it in your .env file.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const answersText = Object.entries(moodQuizAnswers).map(([questionId, answer]) => {
-        const question = moodQuizQuestions.find(q => q.id === questionId);
-        return `${question.question}: ${answer}`;
-      }).join('\n');
+        // Call the proxy endpoint instead of the direct Gemini URL
+        const proxyUrl = '/.netlify/functions/gemini-proxy';
+        const dialogue = results.helpfulDialogue;
+        const voice = ttsVoiceMap[language] || "Kore";
 
-      const result = await model.generateContent([
-        `Analyze the user's mood based on these quiz answers:\n${answersText}\n\nProvide a mood assessment with a mood label (e.g., Happy, Sad, Anxious, Calm), confidence score (0-1), and emotion scores as a JSON object with keys like happiness, anxiety, calm, energy, motivation. Return in JSON format: {"mood": "string", "confidence": 0.85, "emotions": {"happiness": 70, "anxiety": 20, "calm": 80, "energy": 60, "motivation": 50}}`
-      ]);
-      const response = await result.response;
-      const textResponse = response.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(textResponse);
-      } catch {
-        parsed = { mood: 'Neutral', confidence: 0.5, emotions: {} };
-      }
+        const payload = {
+            action: 'playDialogue',
+            input: dialogue,
+            language: language,
+            voice: voice
+        };
 
-      const quizResult = {
-        mood: parsed.mood,
-        confidence: parsed.confidence,
-        emotions: parsed.emotions,
-        answers: moodQuizAnswers,
-        timestamp: new Date()
-      };
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-      setQuizResult(quizResult);
-      setIsQuizCompleted(true);
+            if (!response.ok) {
+                throw new Error(`API response error: ${response.statusText}`);
+            }
 
-      // Save to Firestore
-      if (user) {
-        await addDoc(collection(db, 'users', user.uid, 'moodLogs'), {
-          mood: quizResult.mood,
-          confidence: quizResult.confidence,
-          emotions: quizResult.emotions,
-          answers: quizResult.answers,
-          timestamp: serverTimestamp(),
-        });
-      }
+            const resultAudio = await response.json();
+            const audioData = resultAudio?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            const mimeType = resultAudio?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType;
 
-      // Refresh history
-      const moodLogsRef = collection(db, 'users', user.uid, 'moodLogs');
-      const q = query(moodLogsRef, orderBy('timestamp', 'desc'), limit(5));
-      const querySnapshot = await getDocs(q);
-      const entries = [];
-      querySnapshot.forEach(doc => {
-        entries.push({ id: doc.id, ...doc.data() });
-      });
-      setHistory(entries);
-    } catch (err) {
-      setError('Failed to analyze quiz mood. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                if (audioRef.current) {
+                    audioRef.current.src = audioUrl;
+                    await audioRef.current.play();
+                }
+            } else {
+                throw new Error('Invalid audio data from API');
+            }
+        } catch (e) {
+            console.error('TTS Error:', e);
+            setError(translationsCurrent.errorText);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const resetQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setMoodQuizAnswers({});
-    setQuizResult(null);
-    setIsQuizCompleted(false);
-  };
+    // Generate Quiz API call
+    const generateQuiz = async () => {
+        setLoading(true);
+        setError(null);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
+        // Call the proxy endpoint instead of the direct Gemini URL
+        const proxyUrl = '/.netlify/functions/gemini-proxy';
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+        const payload = {
+            action: 'generateQuiz',
+            input: '', // No specific text input for quiz generation
+            language: language,
+        };
+        
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            const questions = JSON.parse(result.candidates[0].content.parts[0].text);
+            setQuizQuestions(questions);
+            setShowQuiz(true);
+            setQuizAnswers({});
+            setResults(null);
+        } catch (e) {
+            console.error('Quiz Generation Error:', e);
+            setError(translationsCurrent.errorText);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const barColors = {
-    stress: '#f87171', // red-400
-    anxiety: '#fbbf24', // yellow-400
-    calm: '#60a5fa', // blue-400
-    happiness: '#34d399', // green-400
-    sadness: '#a78bfa', // purple-400
-    energy: '#f97316', // orange-400
-    fatigue: '#9ca3af' // gray-400
-  };
+    // Handle quiz answer change
+    const handleQuizAnswerChange = (id, value) => {
+        setQuizAnswers(prev => ({ ...prev, [id]: value }));
+    };
 
-  return (
-    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-pastel-neutral-900 rounded-3xl shadow-lg mt-12">
-      <motion.h2
-        className="text-3xl font-bold mb-6 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        Analyze Your Mood
-      </motion.h2>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <motion.div variants={itemVariants}>
-          <label htmlFor="feeling" className="block text-lg font-semibold text-pastel-neutral-700 dark:text-pastel-neutral-200 mb-2">
-            How are you feeling today?
-          </label>
-          <textarea
-            id="feeling"
-            value={text}
-            onChange={handleInputChange}
-            rows={4}
-            className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-pastel-neutral-50 dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-pastel-neutral-100 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 transition"
-            placeholder="Describe your current mood or thoughts..."
-            required
-          />
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="text-center">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-gradient-to-r from-pastel-blue-500 to-pastel-purple-600 hover:from-pastel-blue-600 hover:to-pastel-purple-700 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Analyzing...' : 'Submit'}
-          </button>
-        </motion.div>
-      </form>
-
-      {/* Voice Mood Analyzer Card */}
-      <motion.div
-        className="mt-8 p-6 bg-gradient-to-br from-pastel-purple-100 to-pastel-blue-100 dark:from-pastel-purple-900 dark:to-pastel-blue-900 rounded-3xl shadow-lg"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h3 className="text-2xl font-bold mb-4 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">
-          🎙️ Voice Mood Analyzer
-        </h3>
-
-        <div className="flex flex-col items-center space-y-4">
-          <motion.button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`p-4 rounded-full transition-all duration-300 ${
-              isRecording
-                ? 'bg-red-500 hover:bg-red-600'
-                : 'bg-pastel-blue-500 hover:bg-pastel-blue-600'
-            } text-white shadow-lg`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            animate={isRecording ? { scale: [1, 1.1, 1] } : {}}
-            transition={isRecording ? { repeat: Infinity, duration: 1.5 } : {}}
-          >
-            {isRecording ? <MicOff size={32} /> : <Mic size={32} />}
-          </motion.button>
-
-          <p className="text-center text-pastel-neutral-700 dark:text-pastel-neutral-300">
-            {isRecording ? 'Listening...' : 'Click the microphone to start voice analysis'}
-          </p>
-
-          {transcribedText && (
-            <motion.div
-              className="w-full p-4 bg-white dark:bg-pastel-neutral-800 rounded-xl shadow-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-pastel-neutral-900 dark:text-pastel-neutral-100 font-semibold mb-2">Transcribed Text:</p>
-              <p className="text-pastel-neutral-700 dark:text-pastel-neutral-300 italic">"{transcribedText}"</p>
-            </motion.div>
-          )}
-        </div>
-
-        {voiceResult && (
-          <motion.div
-            className="mt-6 p-4 bg-white dark:bg-pastel-neutral-800 rounded-xl shadow-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h4 className="text-xl font-bold mb-3 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">
-              Voice Analysis Result: <span className="capitalize">{voiceResult.mood}</span>
-            </h4>
-            <p className="mb-3 text-pastel-neutral-700 dark:text-pastel-neutral-300 font-sans">
-              Confidence: {(voiceResult.confidence * 100).toFixed(0)}%
-            </p>
-            <div className="space-y-2">
-              {Object.entries(voiceResult.emotions).map(([emotion, value]) => (
-                <div key={emotion} className="flex items-center gap-4">
-                  <span className="capitalize w-24 font-semibold text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">{emotion}</span>
-                  <div className="w-full bg-pastel-neutral-300 dark:bg-pastel-neutral-700 rounded-full h-4 overflow-hidden">
-                    <div
-                      className="h-4 rounded-full"
-                      style={{
-                        width: `${value}%`,
-                        backgroundColor: barColors[emotion] || '#a3a3a3'
-                      }}
+    return (
+        <div className={`flex items-center justify-center min-h-screen p-4 bg-gray-900`}>
+            <div className="bg-gray-800 p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col items-center space-y-8 border border-gray-700">
+                {/* Header & Language Selector */}
+                <header className="text-center space-y-2 w-full flex flex-col items-center relative">
+                    <img
+                      src="/logo.png"
+                      alt="Chillspace Logo"
+                      className="cursor-pointer w-12 h-12 mb-2"
+                      onClick={() => navigate('/')}
                     />
-                  </div>
-                  <span className="w-10 text-right font-mono text-pastel-neutral-700 dark:text-pastel-neutral-300">{value}%</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
-
-      {/* Mood Quiz Card */}
-      <motion.div
-        className="mt-8 p-6 bg-gradient-to-br from-pastel-green-100 to-pastel-yellow-100 dark:from-pastel-green-900 dark:to-pastel-yellow-900 rounded-3xl shadow-lg"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h3 className="text-2xl font-bold mb-4 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">
-          🧠 Mood Quiz
-        </h3>
-
-        {!isQuizCompleted ? (
-          <div className="space-y-6">
-            {/* Progress indicator */}
-            <div className="w-full bg-pastel-neutral-300 dark:bg-pastel-neutral-700 rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-pastel-green-500 to-pastel-yellow-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${((currentQuestionIndex + 1) / moodQuizQuestions.length) * 100}%` }}
-              />
-            </div>
-
-            <motion.div
-              key={currentQuestionIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-center"
-            >
-              <h4 className="text-xl font-semibold mb-6 text-pastel-neutral-800 dark:text-pastel-neutral-100">
-                {moodQuizQuestions[currentQuestionIndex].question}
-              </h4>
-
-              <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
-                {moodQuizQuestions[currentQuestionIndex].options.map((option, index) => (
-                  <motion.button
-                    key={option}
-                    onClick={() => handleMoodQuizAnswer(moodQuizQuestions[currentQuestionIndex].id, option)}
-                    className="p-4 bg-white dark:bg-pastel-neutral-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-left"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <span className="text-pastel-neutral-900 dark:text-pastel-neutral-100">{option}</span>
-                  </motion.button>
-                ))}
-              </div>
-
-              <p className="text-sm text-pastel-neutral-600 dark:text-pastel-neutral-400 mt-4">
-                Question {currentQuestionIndex + 1} of {moodQuizQuestions.length}
-              </p>
-            </motion.div>
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-6"
-          >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 0.5, repeat: 2 }}
-            >
-              <h4 className="text-2xl font-bold text-pastel-neutral-800 dark:text-pastel-neutral-100 mb-2">
-                Quiz Complete! 🎉
-              </h4>
-            </motion.div>
-
-            <motion.div
-              className="p-6 bg-white dark:bg-pastel-neutral-800 rounded-xl shadow-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h5 className="text-xl font-bold mb-3 text-pastel-neutral-800 dark:text-pastel-neutral-100">
-                Your Mood: <span className="capitalize">{quizResult.mood}</span>
-              </h5>
-              <p className="mb-4 text-pastel-neutral-700 dark:text-pastel-neutral-300">
-                Confidence: {(quizResult.confidence * 100).toFixed(0)}%
-              </p>
-
-              <div className="space-y-3">
-                {Object.entries(quizResult.emotions).map(([emotion, value], index) => (
-                  <motion.div
-                    key={emotion}
-                    className="flex items-center gap-4"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                  >
-                    <span className="capitalize w-24 font-semibold text-pastel-neutral-800 dark:text-pastel-neutral-100">
-                      {emotion}
-                    </span>
-                    <div className="w-full bg-pastel-neutral-300 dark:bg-pastel-neutral-700 rounded-full h-4 overflow-hidden">
-                      <motion.div
-                        className="h-4 rounded-full"
-                        style={{
-                          backgroundColor: barColors[emotion] || '#a3a3a3'
-                        }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${value}%` }}
-                        transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                      />
+                    <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                        Mindful AI
+                    </h1>
+                    <p className="text-gray-400 font-medium">{translationsCurrent.tagline}</p>
+                    <div className="mt-4">
+                        <label htmlFor="language-select" className="sr-only">Choose a language</label>
+                        <select
+                            id="language-select"
+                            value={language}
+                            onChange={handleLanguageChange}
+                            className="p-2 bg-gray-700 text-gray-100 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                            {Object.keys(translations).map(lang => (
+                                <option key={lang} value={lang}>{languageNames[lang]}</option>
+                            ))}
+                        </select>
                     </div>
-                    <span className="w-10 text-right font-mono text-pastel-neutral-700 dark:text-pastel-neutral-300">
-                      {value}%
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+                </header>
 
-            <motion.button
-              onClick={resetQuiz}
-              className="bg-gradient-to-r from-pastel-green-500 to-pastel-yellow-600 hover:from-pastel-green-600 hover:to-pastel-yellow-700 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 shadow-glow hover:shadow-glow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Take Quiz Again
-            </motion.button>
-          </motion.div>
-        )}
-      </motion.div>
-
-      {error && (
-        <motion.p
-          className="mt-4 text-red-600 font-semibold text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {error}
-        </motion.p>
-      )}
-
-      {result && (
-        <motion.div
-          className="mt-8 p-6 bg-pastel-blue-50 dark:bg-pastel-blue-900 rounded-3xl shadow-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <h3 className="text-2xl font-bold mb-4 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">
-            Mood: <span className="capitalize">{result.mood}</span>
-          </h3>
-          <p className="mb-4 text-pastel-neutral-700 dark:text-pastel-neutral-300 font-sans">
-            Confidence: {(result.confidence * 100).toFixed(0)}%
-          </p>
-          <div className="space-y-2">
-            {Object.entries(result.emotions).map(([emotion, value]) => (
-              <div key={emotion} className="flex items-center gap-4">
-                <span className="capitalize w-24 font-semibold text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">{emotion}</span>
-                <div className="w-full bg-pastel-neutral-300 dark:bg-pastel-neutral-700 rounded-full h-4 overflow-hidden">
-                  <div
-                    className="h-4 rounded-full"
-                    style={{
-                      width: `${value}%`,
-                      backgroundColor: barColors[emotion] || '#a3a3a3'
-                    }}
-                  />
-                </div>
-                <span className="w-10 text-right font-mono text-pastel-neutral-700 dark:text-pastel-neutral-300">{value}%</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {history.length > 0 && (
-        <motion.div
-          className="mt-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <h3 className="text-xl font-semibold mb-4 text-pastel-neutral-800 dark:text-pastel-neutral-100 font-sans">Recent Mood Entries</h3>
-          <ul className="space-y-4">
-            {history.map(entry => (
-              <li key={entry.id} className="p-4 bg-pastel-neutral-100 dark:bg-pastel-neutral-800 rounded-2xl shadow-sm">
-                <p className="font-semibold text-pastel-neutral-900 dark:text-pastel-neutral-100 mb-1">{new Date(entry.timestamp?.seconds * 1000).toLocaleString()}</p>
-                <p className="capitalize font-bold text-pastel-neutral-800 dark:text-pastel-neutral-200 mb-2">{entry.mood}</p>
-                <div className="space-y-1">
-                  {Object.entries(entry.emotions).map(([emotion, value]) => (
-                    <div key={emotion} className="flex items-center gap-3">
-                      <span className="capitalize w-20 font-semibold text-pastel-neutral-700 dark:text-pastel-neutral-300 font-sans">{emotion}</span>
-                      <div className="w-full bg-pastel-neutral-300 dark:bg-pastel-neutral-700 rounded-full h-3 overflow-hidden">
-                        <div
-                          className="h-3 rounded-full"
-                          style={{
-                            width: `${value}%`,
-                            backgroundColor: barColors[emotion] || '#a3a3a3'
-                          }}
+                {/* Input Section */}
+                {!showQuiz && (
+                    <div className="w-full space-y-4">
+                        <label htmlFor="rant" className="block text-gray-300 font-medium">{translationsCurrent.rantLabel}</label>
+                        <textarea
+                            id="rant"
+                            rows={6}
+                            className="w-full p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
+                            placeholder={translationsCurrent.rantPlaceholder}
+                            value={rant}
+                            onChange={(e) => setRant(e.target.value)}
                         />
-                      </div>
-                      <span className="w-10 text-right font-mono text-pastel-neutral-700 dark:text-pastel-neutral-300">{value}%</span>
                     </div>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
-    </div>
-  );
-}
+                )}
 
-export default MoodAnalyzer;
+                {/* Quiz Section */}
+                {showQuiz && (
+                    <div className="w-full space-y-4">
+                        <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.quizTitle}</h3>
+                        <ul className="space-y-4">
+                            {quizQuestions.map((q) => (
+                                <li key={q.id} className="space-y-2">
+                                    <p className="text-gray-300 font-medium">Q: {q.question}</p>
+                                    <textarea
+                                        rows={3}
+                                        className="w-full p-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-xl shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
+                                        placeholder="Your answer here..."
+                                        value={quizAnswers[q.id] || ''}
+                                        onChange={(e) => handleQuizAnswerChange(q.id, e.target.value)}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="w-full flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button
+                        onClick={analyzeMood}
+                        disabled={loading || (!showQuiz && !rant.trim()) || (showQuiz && Object.keys(quizAnswers).length < quizQuestions.length)}
+                        className="w-full md:w-auto flex-1 px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-lg hover:from-purple-600 hover:to-blue-600 focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {translationsCurrent.analyzeBtn}
+                    </button>
+                    <button
+                        onClick={generateQuiz}
+                        disabled={loading}
+                        className="w-full md:w-auto flex-1 px-8 py-4 bg-gray-700 text-gray-200 font-bold rounded-full shadow-lg border border-gray-600 hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {translationsCurrent.generateQuizBtn}
+                    </button>
+                </div>
+
+                {/* Loading Spinner */}
+                {loading && (
+                    <div className="flex flex-col items-center justify-center p-8">
+                        <svg className="animate-spin h-10 w-10 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p className="mt-4 text-gray-400 font-medium">{translationsCurrent.loadingText}</p>
+                    </div>
+                )}
+
+                {/* Error Message */}
+                {error && (
+                    <div className="text-center text-red-400 font-medium mt-4">
+                        <p>{error}</p>
+                    </div>
+                )}
+
+                {/* Results Section */}
+                {results && (
+                    <div className="w-full space-y-6 mt-6">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-bold text-gray-100">{translationsCurrent.resultsTitle}</h2>
+                            <div className="w-24 h-1.5 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mt-2 rounded-full"></div>
+                        </div>
+
+                        {/* Mood Stats Card */}
+                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-lg font-semibold text-gray-400">{translationsCurrent.stressLevelLabel}</span>
+                                <span className="text-3xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">{results.stressLevel}%</span>
+                            </div>
+                            <div className="h-3 rounded-full bg-gray-600 overflow-hidden">
+                                <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{
+                                        width: `${results.stressLevel}%`,
+                                        backgroundColor:
+                                            results.stressLevel < 40 ? '#22c55e' :
+                                            results.stressLevel < 75 ? '#facc15' : '#ef4444'
+                                    }}
+                                ></div>
+                            </div>
+                            <div className="text-gray-400 font-medium">
+                                <span className="font-semibold text-gray-300">{translationsCurrent.summaryLabel}</span>
+                                <p className="mt-1">{results.moodSummary}</p>
+                            </div>
+                        </div>
+
+                        {/* Keywords Card */}
+                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                            <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.emotionsTitle}</h3>
+                            <ul className="flex flex-wrap gap-2 text-sm font-medium">
+                                {results.keyEmotions.map((emotion, idx) => (
+                                    <li key={idx} className="bg-gray-600 text-gray-200 px-3 py-1 rounded-full shadow-sm">{emotion}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Helpful Dialogue & Suggestions Card */}
+                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                            <div className="flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                                </svg>
+                                <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.dialogueTitle}</h3>
+                                <button
+                                    onClick={playDialogue}
+                                    disabled={loading}
+                                    className="ml-auto flex items-center px-4 py-2 bg-purple-500 text-white font-bold rounded-full shadow-lg hover:bg-purple-600 focus:outline-none transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path></svg>
+                                    {translationsCurrent.listenBtn}
+                                </button>
+                            </div>
+                            <p className="text-gray-400 leading-relaxed italic">{results.helpfulDialogue}</p>
+                            <div className="pt-4">
+                                <h4 className="text-lg font-bold text-gray-300">{translationsCurrent.suggestionsTitle}</h4>
+                                <ul className="list-disc list-inside space-y-1 mt-2 text-gray-400">
+                                    {results.helpfulSuggestions.map((suggestion, idx) => (
+                                        <li key={idx}>{suggestion}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Affirmation Card */}
+                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                            <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.affirmationTitle}</h3>
+                            <p className="text-gray-400 leading-relaxed italic">{affirmation}</p>
+                            <button
+                                onClick={generateAffirmation}
+                                disabled={loading}
+                                className="mt-4 px-6 py-2 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold rounded-full shadow-lg hover:from-pink-600 hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-pink-300 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {translationsCurrent.generateAffirmationBtn}
+                            </button>
+                        </div>
+                    </div>
+                )}
+                <audio ref={audioRef} className="hidden"></audio>
+            </div>
+        </div>
+    );
+};
+
+export default AnalyzeYourMood;
