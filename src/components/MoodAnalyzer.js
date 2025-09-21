@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 // Helper function to convert Base64 to ArrayBuffer
 const base64ToArrayBuffer = (base64) => {
@@ -321,8 +323,10 @@ const languageNames = {
     'ml-IN': 'Malayalam'
 };
 
-const AnalyzeYourMood = () => {
+const MoodAnalyzer = () => {
     const navigate = useNavigate();
+    const { isDarkMode, toggleTheme } = useTheme();
+    const { user, loading: authLoading } = useAuth();
     const [language, setLanguage] = useState('en-US');
     const [translationsCurrent, setTranslationsCurrent] = useState(translations['en-US']);
     const [rant, setRant] = useState('');
@@ -533,10 +537,10 @@ const AnalyzeYourMood = () => {
                 {/* Header & Language Selector */}
                 <header className="text-center space-y-2 w-full flex flex-col items-center relative">
                     <img
-                      src="/logo.png"
-                      alt="Chillspace Logo"
-                      className="cursor-pointer w-12 h-12 mb-2"
-                      onClick={() => navigate('/')}
+                        src="/logo.png"
+                        alt="Chillspace Logo"
+                        className="cursor-pointer w-12 h-12 mb-2"
+                        onClick={() => navigate('/')}
                     />
                     <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                         Mindful AI
@@ -717,4 +721,4 @@ const AnalyzeYourMood = () => {
     );
 };
 
-export default AnalyzeYourMood;
+export default MoodAnalyzer;
