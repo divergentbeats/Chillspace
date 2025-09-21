@@ -10,7 +10,8 @@
     "recharts": "^2.6.2",
     "react-icons": "^4.10.1",
     "node-fetch": "^3.3.2",
-    "netlify-cli": "^15.0.0"
+    "netlify-cli": "^15.0.0",
+    "firebase": "^9.22.1"
   },
   "scripts": {
     "start": "react-scripts start",
