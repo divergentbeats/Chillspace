@@ -5,7 +5,8 @@ const SessionCard = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/session');
+    // Use window.location.href for full page reload to ensure Netlify routing works
+    window.location.href = '/session';
   };
 
   return (
