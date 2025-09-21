@@ -5,7 +5,8 @@ const SessionCard = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/session');
+    // Use window.location.href with hash for HashRouter compatibility on Netlify
+    window.location.href = '/#/session';
   };
 
   return (

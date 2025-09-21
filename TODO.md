@@ -1,34 +1,27 @@
-# Mood Quiz Implementation - Task Progress
+# Testing Plan TODO
 
-## ✅ Completed Tasks
-- [x] Add mood quiz questions array with 5 comprehensive questions
-- [x] Implement quiz state management (currentQuestionIndex, moodQuizAnswers, quizResult, isQuizCompleted)
-- [x] Create quiz handler functions:
-  - handleMoodQuizAnswer: Handles answer selection and progression
-  - calculateQuizResult: Calculates mood based on answers with scoring algorithm
-  - resetQuiz: Resets quiz state for retaking
-- [x] Add Mood Quiz UI Card with:
-  - Progress indicator showing current question
-  - Animated question transitions
-  - Interactive answer buttons with hover effects
-  - Results display with emotion breakdown
-  - "Take Quiz Again" functionality
-- [x] Integrate quiz results with existing emotion visualization system
-- [x] Add smooth animations and transitions throughout the quiz flow
+## 1. Login Page Testing
+- [ ] Verify UI elements: email input, password input, login button, Google sign-in button, guest login button, theme toggle.
+- [ ] Validate form input errors for empty fields, invalid email format.
+- [ ] Test login with valid credentials: successful navigation to home page.
+- [ ] Test login with invalid credentials: appropriate error messages for user-not-found, wrong-password, invalid-email, user-disabled, too-many-requests.
+- [ ] Test Google sign-in success and failure flows.
+- [ ] Test guest login navigation to home page.
+- [ ] Test loading states during login and Google sign-in.
+- [ ] Test theme toggle button functionality.
+- [ ] Accessibility checks for labels, aria attributes.
+- [ ] Visual and responsiveness checks for backgrounds and starfield.
 
-## 📋 Implementation Details
-- **Questions**: 5 questions covering feeling, motivation, anxiety, energy, and outlook
-- **Scoring**: 0-4 scale per question (0 = most positive, 4 = most negative)
-- **Mood Categories**: Calm, Motivated, Neutral, Stressed, Anxious
-- **Emotions Tracked**: happiness, anxiety, calm, energy, motivation
-- **UI Features**: Progress bar, animated transitions, emoji indicators
+## 2. Authentication Context Testing
+- [ ] Test login, signup, logout, signInWithGoogle methods for success and failure.
+- [ ] Test user state updates on auth state changes.
+- [ ] Test isLoading state during async operations.
 
-## 🔄 Next Steps (Optional Future Enhancements)
-- [ ] Save quiz results to Firebase database
-- [ ] Add quiz history tracking
-- [ ] Implement mood trend analysis over time
-- [ ] Add personalized recommendations based on quiz results
-- [ ] Create quiz statistics dashboard
+## 3. Post-login Flows
+- [ ] Verify navigation to home page after login.
+- [ ] Test key components like Signup, MoodAnalyzer, HabitTracker, etc. for basic rendering and functionality.
 
-## 🎯 Task Status: **COMPLETED**
-The mood quiz feature has been successfully implemented with full functionality, including interactive UI, scoring algorithm, and seamless integration with the existing mood analyzer system.
+## 4. Edge Cases and Error Handling
+- [ ] Rapid clicks on buttons.
+- [ ] Network failures or Firebase errors.
+- [ ] Invalid tokens or expired sessions.

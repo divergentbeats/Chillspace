@@ -57,6 +57,8 @@ function FeatureGrid() {
       window.open('https://meditate-web.netlify.app/', '_blank', 'noopener,noreferrer');
     } else if (featureId === 3) {
       navigate('/community-connect');
+    } else if (featureId === 4) {
+      navigate('/chatbot');
     } else if (featureId === 5) {
       navigate('/mood-analyzer');
     } else if (featureId === 6) {
