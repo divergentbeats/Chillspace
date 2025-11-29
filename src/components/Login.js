@@ -4,95 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
-import LoginBackground from './LoginBackground';
+import FloatingLines from './FloatingLines';
 import './Login.css';
-
-
-// Starfield Background Component (copied from home page)
-const Starfield = () => {
-  const canvasRef = useRef(null);
-  const { isDarkMode, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let stars = [];
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    const createStars = () => {
-      stars = [];
-      const numStars = isDarkMode ? 150 : 100;
-
-      for (let i = 0; i < numStars; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 0.5,
-          opacity: Math.random(),
-          twinkleSpeed: Math.random() * 0.02 + 0.005,
-          twinkleDirection: Math.random() > 0.5 ? 1 : -1,
-        });
-      }
-    };
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      stars.forEach((star) => {
-        // Update twinkle
-        star.opacity += star.twinkleSpeed * star.twinkleDirection;
-        if (star.opacity >= 1 || star.opacity <= 0) {
-          star.twinkleDirection *= -1;
-        }
-
-        // Draw star
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * (isDarkMode ? 0.8 : 0.6)})`;
-        ctx.fill();
-
-        // Add glow effect for dark mode
-        if (isDarkMode) {
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-      });
-
-      animationId = requestAnimationFrame(animate);
-    };
-
-    resizeCanvas();
-    createStars();
-    animate();
-
-    const handleResize = () => {
-      resizeCanvas();
-      createStars();
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
-    };
-  }, [isDarkMode]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 -z-20 pointer-events-none"
-      style={{ background: 'transparent' }}
-    />
-  );
-};
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -103,8 +16,6 @@ function Login() {
   const { login, signInWithGoogle, isLoading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
-
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -181,7 +92,17 @@ function Login() {
 
   return (
     <div className={`relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      <LoginBackground />
+      <div className="absolute inset-0 z-0">
+        <FloatingLines
+          enabledWaves={['top', 'middle', 'bottom']}
+          lineCount={[10, 15, 20]}
+          lineDistance={[8, 6, 4]}
+          bendRadius={5.0}
+          bendStrength={-0.5}
+          interactive={true}
+          parallax={true}
+        />
+      </div>
       <div className="absolute top-4 right-4 z-20">
         <button
           onClick={toggleTheme}
@@ -262,11 +183,10 @@ function Login() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
-                  errors.email
+                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${errors.email
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
-                } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
+                  } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Enter your email"
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -291,11 +211,10 @@ function Login() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
-                  errors.password
+                className={`mt-1 block w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${errors.password
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
-                } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
+                  } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Enter your password"
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -325,9 +244,8 @@ function Login() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow ${
-                isDarkMode ? 'text-white bg-pastel-blue-600 hover:bg-pastel-blue-700' : 'text-pastel-neutral-900 bg-white hover:bg-pastel-neutral-100'
-              }`}
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-glow ${isDarkMode ? 'text-white bg-pastel-blue-600 hover:bg-pastel-blue-700' : 'text-pastel-neutral-900 bg-white hover:bg-pastel-neutral-100'
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -361,10 +279,10 @@ function Login() {
               className="w-full flex justify-center items-center px-4 py-3 border border-pastel-neutral-300 dark:border-pastel-neutral-600 rounded-lg shadow-sm bg-white dark:bg-pastel-neutral-800 text-sm font-medium text-pastel-neutral-700 dark:text-pastel-neutral-300 hover:bg-pastel-neutral-50 dark:hover:bg-pastel-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.64 12.204c0-.639-.057-1.252-.162-1.837H12v3.481h6.844a5.862 5.862 0 01-2.54 3.846v3.197h4.107c2.4-2.213 3.778-5.462 3.778-9.687z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.963-1.073 7.951-2.91l-4.107-3.197c-1.14.766-2.6 1.22-3.844 1.22-2.956 0-5.462-1.995-6.356-4.677H1.44v2.94A11.998 11.998 0 0012 24z"/>
-                <path fill="#FBBC05" d="M5.644 14.436a7.18 7.18 0 010-4.872V6.624H1.44a11.998 11.998 0 000 10.752l4.204-2.94z"/>
-                <path fill="#EA4335" d="M12 4.77c1.76 0 3.344.606 4.59 1.796l3.44-3.44C17.96 1.367 15.24 0 12 0 7.2 0 3.12 2.88 1.44 6.624l4.204 3.02C6.538 6.765 9.012 4.77 12 4.77z"/>
+                <path fill="#4285F4" d="M23.64 12.204c0-.639-.057-1.252-.162-1.837H12v3.481h6.844a5.862 5.862 0 01-2.54 3.846v3.197h4.107c2.4-2.213 3.778-5.462 3.778-9.687z" />
+                <path fill="#34A853" d="M12 24c3.24 0 5.963-1.073 7.951-2.91l-4.107-3.197c-1.14.766-2.6 1.22-3.844 1.22-2.956 0-5.462-1.995-6.356-4.677H1.44v2.94A11.998 11.998 0 0012 24z" />
+                <path fill="#FBBC05" d="M5.644 14.436a7.18 7.18 0 010-4.872V6.624H1.44a11.998 11.998 0 000 10.752l4.204-2.94z" />
+                <path fill="#EA4335" d="M12 4.77c1.76 0 3.344.606 4.59 1.796l3.44-3.44C17.96 1.367 15.24 0 12 0 7.2 0 3.12 2.88 1.44 6.624l4.204 3.02C6.538 6.765 9.012 4.77 12 4.77z" />
               </svg>
               Sign in with Google
             </motion.button>

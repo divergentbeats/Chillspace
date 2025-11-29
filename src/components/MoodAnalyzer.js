@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import SpotlightCard from './SpotlightCard';
 
 // Helper function to convert Base64 to ArrayBuffer
 const base64ToArrayBuffer = (base64) => {
@@ -417,10 +418,10 @@ const MoodAnalyzer = () => {
                 return `Question: ${q.question}\nAnswer: ${answer}\n\n`;
             }).join('');
         }
-        
+
         if (!userText) {
-             setError(translationsCurrent.errorText);
-             return;
+            setError(translationsCurrent.errorText);
+            return;
         };
 
         setLoading(true);
@@ -430,7 +431,7 @@ const MoodAnalyzer = () => {
         try {
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
+
             const result = analyzeMoodLocally(userText);
             setResults(result);
         } catch (e) {
@@ -460,7 +461,7 @@ const MoodAnalyzer = () => {
         try {
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
             setAffirmation(randomAffirmation);
         } catch (e) {
@@ -479,7 +480,7 @@ const MoodAnalyzer = () => {
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(results.helpfulDialogue);
-        
+
         // Try to set a voice based on language
         const voices = window.speechSynthesis.getVoices();
         const langCode = language.split('-')[0]; // e.g., 'en' from 'en-US'
@@ -504,11 +505,11 @@ const MoodAnalyzer = () => {
             { id: 4, question: "What is one emotion you've felt strongly today?" },
             { id: 5, question: "What's one small thing that would make you feel better right now?" }
         ];
-        
+
         try {
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             setQuizQuestions(localQuestions);
             setShowQuiz(true);
             setQuizAnswers({});
@@ -637,7 +638,7 @@ const MoodAnalyzer = () => {
                         </div>
 
                         {/* Mood Stats Card */}
-                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                        <SpotlightCard className="bg-gray-700 border-gray-600 p-6 md:p-8 shadow-inner space-y-4" spotlightColor="rgba(167, 139, 250, 0.2)">
                             <div className="flex items-center justify-between">
                                 <span className="text-lg font-semibold text-gray-400">{translationsCurrent.stressLevelLabel}</span>
                                 <span className="text-3xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">{results.stressLevel}%</span>
@@ -649,7 +650,7 @@ const MoodAnalyzer = () => {
                                         width: `${results.stressLevel}%`,
                                         backgroundColor:
                                             results.stressLevel < 40 ? '#22c55e' :
-                                            results.stressLevel < 75 ? '#facc15' : '#ef4444'
+                                                results.stressLevel < 75 ? '#facc15' : '#ef4444'
                                     }}
                                 ></div>
                             </div>
@@ -657,23 +658,23 @@ const MoodAnalyzer = () => {
                                 <span className="font-semibold text-gray-300">{translationsCurrent.summaryLabel}</span>
                                 <p className="mt-1">{results.moodSummary}</p>
                             </div>
-                        </div>
+                        </SpotlightCard>
 
                         {/* Keywords Card */}
-                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                        <SpotlightCard className="bg-gray-700 border-gray-600 p-6 md:p-8 shadow-inner space-y-4" spotlightColor="rgba(59, 130, 246, 0.2)">
                             <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.emotionsTitle}</h3>
                             <ul className="flex flex-wrap gap-2 text-sm font-medium">
                                 {results.keyEmotions.map((emotion, idx) => (
                                     <li key={idx} className="bg-gray-600 text-gray-200 px-3 py-1 rounded-full shadow-sm">{emotion}</li>
                                 ))}
                             </ul>
-                        </div>
+                        </SpotlightCard>
 
                         {/* Helpful Dialogue & Suggestions Card */}
-                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                        <SpotlightCard className="bg-gray-700 border-gray-600 p-6 md:p-8 shadow-inner space-y-4" spotlightColor="rgba(236, 72, 153, 0.2)">
                             <div className="flex items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-400" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
                                 </svg>
                                 <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.dialogueTitle}</h3>
                                 <button
@@ -694,10 +695,10 @@ const MoodAnalyzer = () => {
                                     ))}
                                 </ul>
                             </div>
-                        </div>
+                        </SpotlightCard>
 
                         {/* Affirmation Card */}
-                        <div className="bg-gray-700 border border-gray-600 rounded-2xl p-6 md:p-8 shadow-inner space-y-4">
+                        <SpotlightCard className="bg-gray-700 border-gray-600 p-6 md:p-8 shadow-inner space-y-4" spotlightColor="rgba(244, 63, 94, 0.2)">
                             <h3 className="text-xl font-bold text-gray-300">{translationsCurrent.affirmationTitle}</h3>
                             <p className="text-gray-400 leading-relaxed italic">{affirmation}</p>
                             <button
@@ -707,7 +708,7 @@ const MoodAnalyzer = () => {
                             >
                                 {translationsCurrent.generateAffirmationBtn}
                             </button>
-                        </div>
+                        </SpotlightCard>
                     </div>
                 )}
                 <audio ref={audioRef} className="hidden"></audio>

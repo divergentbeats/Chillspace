@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import FloatingLines from './FloatingLines';
+
 function Signup() {
   const [formData, setFormData] = useState({
     email: '',
@@ -80,21 +82,40 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 sm:px-6 lg:px-8">
+    <div className={`relative min-h-screen flex items-center justify-center transition-colors duration-200 px-4 sm:px-6 lg:px-8 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="absolute inset-0 z-0">
+        <FloatingLines
+          enabledWaves={['top', 'middle', 'bottom']}
+          lineCount={[10, 15, 20]}
+          lineDistance={[8, 6, 4]}
+          bendRadius={5.0}
+          bendStrength={-0.5}
+          interactive={true}
+          parallax={true}
+        />
+      </div>
       <div className="absolute top-4 right-4 z-20">
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="p-2 rounded-full bg-pastel-blue-500 text-white hover:bg-pastel-blue-600 focus:outline-none focus:ring-2 focus:ring-pastel-blue-400"
+          className="p-2 rounded-xl bg-pastel-neutral-100 dark:bg-pastel-neutral-800 text-pastel-neutral-600 dark:text-pastel-neutral-300 hover:bg-pastel-blue-100 dark:hover:bg-pastel-blue-900/30 hover:text-pastel-blue-600 dark:hover:text-pastel-blue-400 transition-all duration-300 shadow-soft"
         >
-          {isDarkMode ? '🌙' : '☀️'}
+          {isDarkMode ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
         </button>
       </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-md w-full space-y-8"
+        className={`max-w-md w-full space-y-8 z-10 relative rounded-xl backdrop-blur-md p-8 shadow-lg ${isDarkMode ? 'bg-gray-800/80 text-white' : 'bg-white/20 text-pastel-neutral-900'}`}
       >
         <div>
           <motion.div
@@ -153,11 +174,10 @@ function Signup() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
-                  errors.email
+                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${errors.email
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
-                } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
+                  } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Enter your email"
               />
               {errors.email && (
@@ -177,11 +197,10 @@ function Signup() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
-                  errors.password
+                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${errors.password
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
-                } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
+                  } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Create a password (min 6 characters)"
               />
               {errors.password && (
@@ -201,11 +220,10 @@ function Signup() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${
-                  errors.confirmPassword
+                className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-pastel-neutral-400 focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-colors ${errors.confirmPassword
                     ? 'border-red-300 dark:border-red-600'
                     : 'border-pastel-neutral-300 dark:border-pastel-neutral-600'
-                } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
+                  } bg-white dark:bg-pastel-neutral-800 text-pastel-neutral-900 dark:text-white`}
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
