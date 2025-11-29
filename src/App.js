@@ -21,6 +21,8 @@ import MoodAnalyzer from './components/MoodAnalyzer';
 /* import Chatbot from './components/Chatbot'; */
 import TrackYourProgress from './components/TrackYourProgress';
 import SessionPage from './components/SessionPage';
+import MeditationCenter from './components/MeditationCenter';
+import SupportYouth from './components/SupportYouth';
 
 // Updated: Added smooth starfield background animation and fixed navbar scroll offset
 
@@ -270,6 +272,32 @@ function AnimatedRoutes() {
                             transition={{ duration: 0.3 }}
                         >
                             <TrackYourProgress />
+                        </motion.div>
+                    }
+                />
+                <Route
+                    path="/meditate"
+                    element={
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <MeditationCenter />
+                        </motion.div>
+                    }
+                />
+                <Route
+                    path="/support-youth"
+                    element={
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <SupportYouth />
                         </motion.div>
                     }
                 />

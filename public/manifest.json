@@ -1,0 +1,15 @@
+{
+    "manifest_version": 3,
+    "name": "Chillspace",
+    "description": "A supportive platform for mental wellness and productivity.",
+    "version": "1.0.0",
+    "action": {
+        "default_popup": "index.html",
+        "default_title": "Chillspace"
+    },
+    "icons": {
+        "192": "logo.png",
+        "512": "logo.png"
+    },
+    "permissions": []
+}

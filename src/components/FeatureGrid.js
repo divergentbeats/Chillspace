@@ -53,12 +53,11 @@ function FeatureGrid() {
     if (featureId === 1) {
       navigate('/vent');
     } else if (featureId === 2) {
-      // Redirect to external meditation site
-      window.open('https://meditate-web.netlify.app/', '_blank', 'noopener,noreferrer');
+      navigate('/meditate');
     } else if (featureId === 3) {
       navigate('/community-connect');
     } else if (featureId === 4) {
-      navigate('/chatbot');
+      navigate('/support-youth');
     } else if (featureId === 5) {
       navigate('/mood-analyzer');
     } else if (featureId === 6) {
@@ -79,7 +78,7 @@ function FeatureGrid() {
           Discover tools and resources designed to support your mental wellness journey
         </p>
       </div>
-      
+
       {/* Main Dashboard Grid - 3 key features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         {features.slice(3, 6).map((feature) => (
@@ -92,17 +91,17 @@ function FeatureGrid() {
               <div className="text-5xl mb-6 text-center">
                 {feature.icon}
               </div>
-              
+
               {/* Title */}
               <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 text-center font-sans">
                 {feature.title}
               </h3>
-              
+
               {/* Description */}
               <p className="text-gray-600 dark:text-gray-300 text-center mb-8 text-lg font-sans">
                 {feature.description}
               </p>
-              
+
               {/* Button */}
               <div className="text-center">
                 <button
@@ -129,17 +128,17 @@ function FeatureGrid() {
               <div className="text-4xl mb-4 text-center">
                 {feature.icon}
               </div>
-              
+
               {/* Title */}
               <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3 text-center font-sans">
                 {feature.title}
               </h3>
-              
+
               {/* Description */}
               <p className="text-gray-600 dark:text-gray-300 text-center mb-6 font-sans">
                 {feature.description}
               </p>
-              
+
               {/* Button */}
               <div className="text-center">
                 <button
