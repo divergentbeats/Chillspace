@@ -355,7 +355,58 @@ const MoodAnalyzer = () => {
         setResults(null);
     };
 
-    // Analyze Mood API call
+    // Local Mood Analysis Logic
+    const analyzeMoodLocally = (text) => {
+        const lowerText = text.toLowerCase();
+        let stressLevel = 50;
+        let moodSummary = "You seem to be feeling neutral.";
+        let keyEmotions = ["Neutral"];
+        let helpfulDialogue = "It's okay to feel this way. Take a moment to breathe.";
+        let helpfulSuggestions = ["Take a deep breath", "Drink some water", "Stretch for 5 minutes"];
+
+        // Keywords
+        const positiveWords = ['happy', 'joy', 'great', 'good', 'excited', 'love', 'awesome', 'wonderful', 'calm', 'peace'];
+        const negativeWords = ['sad', 'depressed', 'bad', 'lonely', 'tired', 'angry', 'upset', 'hate', 'cry', 'pain'];
+        const anxiousWords = ['worried', 'nervous', 'stress', 'panic', 'fear', 'anxiety', 'overwhelmed', 'busy', 'deadline'];
+
+        let positiveCount = 0;
+        let negativeCount = 0;
+        let anxiousCount = 0;
+
+        positiveWords.forEach(w => { if (lowerText.includes(w)) positiveCount++; });
+        negativeWords.forEach(w => { if (lowerText.includes(w)) negativeCount++; });
+        anxiousWords.forEach(w => { if (lowerText.includes(w)) anxiousCount++; });
+
+        if (positiveCount > negativeCount && positiveCount > anxiousCount) {
+            stressLevel = Math.max(10, 30 - (positiveCount * 5));
+            moodSummary = "You seem to be in a good place! Keep up the positive vibes.";
+            keyEmotions = ["Happy", "Content", "Optimistic"];
+            helpfulDialogue = "It's wonderful to hear that you're feeling good! embracing these moments builds resilience.";
+            helpfulSuggestions = ["Share your joy with a friend", "Write down what went well", "Enjoy the moment"];
+        } else if (negativeCount > positiveCount && negativeCount > anxiousCount) {
+            stressLevel = Math.min(90, 60 + (negativeCount * 5));
+            moodSummary = "It sounds like you're going through a tough time.";
+            keyEmotions = ["Sad", "Low Energy", "Reflective"];
+            helpfulDialogue = "I hear you. It's completely valid to feel this way. Be gentle with yourself right now.";
+            helpfulSuggestions = ["Talk to someone you trust", "Do something small that brings comfort", "Rest if you need to"];
+        } else if (anxiousCount > 0) {
+            stressLevel = Math.min(95, 70 + (anxiousCount * 5));
+            moodSummary = "You seem to be feeling a bit overwhelmed or anxious.";
+            keyEmotions = ["Anxious", "Stressed", "Overwhelmed"];
+            helpfulDialogue = "Take a deep breath. You are handling a lot, and it's okay to pause.";
+            helpfulSuggestions = ["Practice 4-7-8 breathing", "Write down your worries", "Focus on one small task"];
+        }
+
+        return {
+            stressLevel,
+            moodSummary,
+            keyEmotions,
+            helpfulDialogue,
+            helpfulSuggestions
+        };
+    };
+
+    // Analyze Mood API call (Replaced with Local)
     const analyzeMood = async () => {
         let userText = '';
         if (!showQuiz) {
@@ -376,145 +427,89 @@ const MoodAnalyzer = () => {
         setError(null);
         setResults(null);
 
-        // Call the proxy endpoint instead of the direct Gemini URL
-        const proxyUrl = '/.netlify/functions/gemini-proxy';
-
-        const payload = {
-            action: 'analyzeMood',
-            input: userText,
-            language: language,
-        };
-
         try {
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
-            setResults(parsedData);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const result = analyzeMoodLocally(userText);
+            setResults(result);
         } catch (e) {
-            console.error('API Error:', e);
+            console.error('Analysis Error:', e);
             setError(translationsCurrent.errorText);
         } finally {
             setLoading(false);
         }
     };
 
-    // Generate Affirmation API call
+    // Generate Affirmation API call (Replaced with Local)
     const generateAffirmation = async () => {
-        const userText = !showQuiz ? rant.trim() : quizQuestions.map((q) => {
-            const answer = quizAnswers[q.id] || '';
-            return `Question: ${q.question}\nAnswer: ${answer}\n\n`;
-        }).join('');
-
         setLoading(true);
         setError(null);
 
-        // Call the proxy endpoint instead of the direct Gemini URL
-        const proxyUrl = '/.netlify/functions/gemini-proxy';
-
-        const payload = {
-            action: 'generateAffirmation',
-            input: userText,
-            language: language,
-        };
+        const affirmations = [
+            "I am capable of handling whatever comes my way.",
+            "I choose to focus on what I can control.",
+            "My peace is my priority.",
+            "I am enough just as I am.",
+            "Every breath is a new beginning.",
+            "I trust the process of life.",
+            "I am stronger than I think.",
+            "I give myself permission to rest."
+        ];
 
         try {
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            setAffirmation(result.candidates[0].content.parts[0].text);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+            setAffirmation(randomAffirmation);
         } catch (e) {
-            console.error('Affirmation API Error:', e);
+            console.error('Affirmation Error:', e);
             setAffirmation('Failed to generate affirmation.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Play Dialogue TTS API call
+    // Play Dialogue TTS API call (Replaced with Web Speech API)
     const playDialogue = async () => {
         if (!results || !results.helpfulDialogue) return;
 
-        setLoading(true);
-        setError(null);
+        // Cancel any current speech
+        window.speechSynthesis.cancel();
 
-        // Call the proxy endpoint instead of the direct Gemini URL
-        const proxyUrl = '/.netlify/functions/gemini-proxy';
-        const dialogue = results.helpfulDialogue;
-        const voice = ttsVoiceMap[language] || "Kore";
+        const utterance = new SpeechSynthesisUtterance(results.helpfulDialogue);
+        
+        // Try to set a voice based on language
+        const voices = window.speechSynthesis.getVoices();
+        const langCode = language.split('-')[0]; // e.g., 'en' from 'en-US'
+        const voice = voices.find(v => v.lang.startsWith(langCode));
+        if (voice) utterance.voice = voice;
 
-        const payload = {
-            action: 'playDialogue',
-            input: dialogue,
-            language: language,
-            voice: voice
-        };
+        utterance.rate = 0.9; // Slightly slower for calming effect
+        utterance.pitch = 1;
 
-        try {
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`API response error: ${response.statusText}`);
-            }
-
-            const resultAudio = await response.json();
-            const audioData = resultAudio?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-            const mimeType = resultAudio?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType;
-
-            if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
-                if (audioRef.current) {
-                    audioRef.current.src = audioUrl;
-                    await audioRef.current.play();
-                }
-            } else {
-                throw new Error('Invalid audio data from API');
-            }
-        } catch (e) {
-            console.error('TTS Error:', e);
-            setError(translationsCurrent.errorText);
-        } finally {
-            setLoading(false);
-        }
+        window.speechSynthesis.speak(utterance);
     };
 
-    // Generate Quiz API call
+    // Generate Quiz API call (Replaced with Local)
     const generateQuiz = async () => {
         setLoading(true);
         setError(null);
 
-        // Call the proxy endpoint instead of the direct Gemini URL
-        const proxyUrl = '/.netlify/functions/gemini-proxy';
-
-        const payload = {
-            action: 'generateQuiz',
-            input: '', // No specific text input for quiz generation
-            language: language,
-        };
+        const localQuestions = [
+            { id: 1, question: "How have you been sleeping lately?" },
+            { id: 2, question: "What's one thing that's been on your mind the most?" },
+            { id: 3, question: "Have you felt able to relax in the last 24 hours?" },
+            { id: 4, question: "What is one emotion you've felt strongly today?" },
+            { id: 5, question: "What's one small thing that would make you feel better right now?" }
+        ];
         
         try {
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            const questions = JSON.parse(result.candidates[0].content.parts[0].text);
-            setQuizQuestions(questions);
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            setQuizQuestions(localQuestions);
             setShowQuiz(true);
             setQuizAnswers({});
             setResults(null);
