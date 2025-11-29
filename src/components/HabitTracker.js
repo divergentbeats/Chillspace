@@ -24,7 +24,7 @@ function HabitTracker() {
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay() + (weekOffset * 7));
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
@@ -121,14 +121,14 @@ function HabitTracker() {
     if (newHabit.trim()) {
       const habitIcons = ['💧', '🏃‍♀️', '✍️', '🧘‍♀️', '📚', '🎯', '🌱', '💪'];
       const habitColors = ['blue', 'green', 'purple', 'indigo', 'pink', 'orange', 'teal', 'red'];
-      
+
       const newHabitObj = {
         id: Date.now(),
         name: newHabit.trim(),
         icon: habitIcons[Math.floor(Math.random() * habitIcons.length)],
         color: habitColors[Math.floor(Math.random() * habitColors.length)]
       };
-      
+
       const updatedHabits = [...habits, newHabitObj];
       setHabits(updatedHabits);
       setNewHabit('');
@@ -209,16 +209,22 @@ function HabitTracker() {
   const getHabitStreak = (habitId) => {
     let streak = 0;
     const today = new Date();
-    
-    for (let i = 0; i < 28; i++) {
+    today.setHours(0, 0, 0, 0); // Normalize today to midnight
+
+    // Check up to 365 days back
+    for (let i = 0; i < 365; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
       const dateString = checkDate.toDateString();
       const key = `${habitId}-${dateString}`;
-      
+
       if (completedDays[key]) {
         streak++;
+      } else if (i === 0) {
+        // If today is not completed, check if yesterday was completed to maintain streak
+        continue;
       } else {
+        // Break streak if a day is missed (excluding today if it's just not done yet)
         break;
       }
     }
@@ -290,11 +296,10 @@ function HabitTracker() {
           <button
             onClick={() => setCurrentWeek(prev => Math.max(0, prev - 1))}
             disabled={currentWeek === 0}
-            className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
-              currentWeek === 0
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
+            className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${currentWeek === 0
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
           >
             ← Previous Week
           </button>
@@ -335,42 +340,41 @@ function HabitTracker() {
               </div>
 
               {/* Days Grid */}
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scroll-smooth pb-2">
                 <div className="grid grid-cols-7 gap-2 min-w-max">
-                {/* Day Headers */}
-                {weekDates.map((date, index) => (
-                  <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
-                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                    <br />
-                    {date.getDate()}
-                  </div>
-                ))}
-                
-                {/* Habit Checkboxes */}
-                {weekDates.map((date, index) => {
-                  const dateString = date.toDateString();
-                  const key = `${habit.id}-${dateString}`;
-                  const isCompleted = completedDays[key];
-                  const isToday = date.toDateString() === new Date().toDateString();
-                  
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => toggleHabitDay(habit.id, dateString)}
-                      className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
-                        isCompleted
+                  {/* Day Headers */}
+                  {weekDates.map((date, index) => (
+                    <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 font-sans">
+                      {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      <br />
+                      {date.getDate()}
+                    </div>
+                  ))}
+
+                  {/* Habit Checkboxes */}
+                  {weekDates.map((date, index) => {
+                    const dateString = date.toDateString();
+                    const key = `${habit.id}-${dateString}`;
+                    const isCompleted = completedDays[key];
+                    const isToday = date.toDateString() === new Date().toDateString();
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => toggleHabitDay(habit.id, dateString)}
+                        className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${isCompleted
                           ? `${getColorClasses(habit.color)} text-white`
                           : `border-gray-300 dark:border-gray-500 hover:${getBorderColor(habit.color)} hover:scale-110 ${isToday ? 'ring-2 ring-indigo-300 dark:ring-indigo-400' : ''}`
-                      }`}
-                    >
-                      {isCompleted && (
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                  );
-                })}
+                          }`}
+                      >
+                        {isCompleted && (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
